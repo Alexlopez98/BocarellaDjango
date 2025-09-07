@@ -33,7 +33,10 @@
         <!-- Autenticación -->
         {% if user.is_authenticated %}
           <li class="nav-item">
-            <span class="nav-link">👤 Hola, {{ user.username }}</span>
+            <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
+          </li>
+          <li class="nav-item">
+            <span class="nav-link">Hola, {{ user.username }}</span>
           </li>
           <li class="nav-item">
             <a class="btn btn-danger btn-sm ms-2" href="{% url 'logout' %}">Cerrar sesión</a>
@@ -51,5 +54,4 @@
   </div>
 </nav>
 
-<link rel="stylesheet" href="{% static 'css/headerandfooter' %}">
-
+<link rel="stylesheet" href="{% static 'css/headerandfooter.css' %}">

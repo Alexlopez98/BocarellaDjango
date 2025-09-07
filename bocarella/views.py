@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from .models import Perfil
 
 
 
@@ -55,3 +57,42 @@ def cerrar_sesion(request):
     logout(request)
     messages.info(request, "👋 Sesión cerrada.")
     return redirect("index")
+
+
+@login_required
+def perfil(request):
+    user = request.user
+    perfil, created = Perfil.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        nombre = request.POST.get("perfilNombre").strip()
+        email = request.POST.get("perfilEmail").strip()
+        direccion = request.POST.get("perfilDireccion").strip()
+        password = request.POST.get("perfilPass")
+        confirm = request.POST.get("perfilConfirm")
+
+        if nombre and email and direccion:
+            user.first_name = nombre
+            user.email = email
+            perfil.direccion = direccion
+
+            if password:
+                if password == confirm:
+                    user.set_password(password)
+                else:
+                    messages.error(request, "❌ Las contraseñas no coinciden.")
+                    return redirect("perfil")
+
+            user.save()
+            perfil.save()
+            messages.success(request, "✅ Perfil actualizado correctamente.")
+            return redirect("perfil")
+        else:
+            messages.error(request, "❌ Todos los campos son obligatorios.")
+            return redirect("perfil")
+
+    context = {
+        "user": user,
+        "perfil": perfil
+    }
+    return render(request, "perfil.html", context)

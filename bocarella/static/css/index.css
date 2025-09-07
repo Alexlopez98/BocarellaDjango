@@ -1,13 +1,3 @@
-body {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.9s ease-out, transform 0.9s ease-out;
-}
-
-body.loaded {
-    opacity: 1;
-    transform: translateY(0);
-}
 
 .bannerid img {
     border-radius: 10px;
