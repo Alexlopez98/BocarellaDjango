@@ -1,0 +1,92 @@
+/* ===== Header ===== */
+.headerID {
+  background-color: rgb(0, 104, 5) !important;
+  color: white;
+  position: relative;
+  z-index: 1000;
+}
+
+.subheader {
+  background-color: rgb(0, 84, 4) !important;
+  transition: top 0.1s ease;
+}
+
+.headerID .nav-link,
+.subheader .nav-link {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.headerID .nav-link:hover,
+.subheader .nav-link:hover {
+  color: #c0ffc0 !important;
+  text-decoration: underline;
+}
+
+/* Dropdown Bootstrap */
+.navbar-nav .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1050;
+  background-color: rgb(0, 104, 5);
+}
+
+.navbar-nav .nav-item.dropdown {
+  position: relative;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  #subNavContent .navbar-nav {
+    flex-direction: column;
+    text-align: center;
+  }
+  #subNavContent .nav-item {
+    margin-bottom: 10px;
+  }
+}
+
+/* ===== Footer ===== */
+.footer1id {
+  background-color: rgb(227, 239, 179);
+  color: #333;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.footer1id a {
+  color: #333;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.footer1id a:hover {
+  color: rgb(0, 104, 5);
+  text-decoration: underline;
+}
+
+/* ===== Carrito ===== */
+.carrito-css {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.carrito-css2 {
+  background-color: rgb(46, 158, 53);
+  padding: 8px;
+  border-radius: 20%;
+}
+
+/* ===== Sobrescribir Bootstrap navbar ===== */
+.navbar {
+  background-color: rgb(17, 88, 22) !important;
+}
+
+.navbar .nav-link {
+  color: #fff !important;
+}
+
+.navbar .nav-link:hover {
+  color: #c0ffc0 !important;
+}

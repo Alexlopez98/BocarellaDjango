@@ -1,0 +1,27 @@
+body {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+
+body.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.bannerid img {
+    border-radius: 10px;
+    object-fit: cover;
+    max-height: 500px; /* limita altura para que no se vea gigante */
+    width: 100%;
+}
+
+.main-content {
+    padding-top: 90px;
+}
+
+@media (max-width: 768px) {
+    .bannerid {
+        margin: 0 5%;
+    }
+}

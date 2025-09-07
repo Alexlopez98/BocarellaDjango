@@ -1,0 +1,21 @@
+# Entorno virtual
+venv/
+__pycache__/
+*.pyc
+
+# Base de datos
+db.sqlite3
+
+# Logs
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos estáticos compilados (si los generas)
+staticfiles/
+
+# Migraciones de Django (mantener la carpeta pero no los archivos generados automáticamente)
+bocarella/migrations/__pycache__/
+bocarella/migrations/*.pyc
