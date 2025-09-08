@@ -18,35 +18,37 @@
 
     {% include 'header.html' %}
 
+    <!-- Subheader -->
     <nav class="bg-light border-bottom mb-4 sticky-top">
         <div class="container d-flex justify-content-center py-2">
-            <a href="{% url 'promociones' %}" class="btn btn-outline-custom promociones-btn mx-2">🍕 Promociones</a>
-            <a href="{% url 'pizzas' %}" class="btn btn-outline-custom pizzas-btn mx-2">🍕 Pizzas</a>
-            <a href="{% url 'acompanamientos' %}" class="btn btn-outline-custom acompanamientos-btn mx-2">🥤
-                Acompañamientos</a>
-            <a href="{% url 'extras' %}" class="btn btn-outline-custom extras-btn mx-2">🍰 Extras</a>
+            <a href="{% url 'promociones' %}" class="btn btn-outline-custom mx-2">🍕 Promociones</a>
+            <a href="{% url 'pizzas' %}" class="btn btn-outline-custom mx-2">🍕 Pizzas</a>
+            <a href="{% url 'acompanamientos' %}" class="btn btn-outline-custom mx-2">🥤 Acompañamientos</a>
+            <a href="{% url 'extras' %}" class="btn btn-outline-custom mx-2">🍰 Extras</a>
         </div>
     </nav>
 
     <main class="container my-4">
         <h1 class="text-center mb-4">🥤 Acompañamientos</h1>
         <div class="row" id="acompanamientos">
-            {% for item in acompanamientos %}
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <img src="{{ item.imagen.url }}" class="card-img-top" alt="{{ item.nombre }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ item.nombre }}</h5>
-                        <p class="fw-bold">${{ item.precio }}</p>
-                        <button class="btn btn-success w-100" onclick="agregarAlCarrito('{{ item.id }}')">
-                            <i class="fa-solid fa-cart-plus"></i> Agregar
-                        </button>
+            {% if acompanamientos %}
+                {% for item in acompanamientos %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{% static item.imagen %}" class="card-img-top" alt="{{ item.nombre }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ item.nombre }}</h5>
+                                <p class="fw-bold">${{ item.precio }}</p>
+                                <button class="btn btn-success w-100">
+                                    <i class="fa-solid fa-cart-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            {% empty %}
-            <p class="text-center">No hay acompañamientos disponibles 🥤</p>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p class="text-center">No hay acompañamientos disponibles 🥤</p>
+            {% endif %}
         </div>
     </main>
 

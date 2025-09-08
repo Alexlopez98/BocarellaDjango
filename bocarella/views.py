@@ -6,18 +6,16 @@ from django.contrib import messages
 from .models import Perfil
 from .models import Pizza, Promocion, Acompanamiento, Extra
 
-
 def home(request):
-    return render(request, 'index.html')  
+    return render(request, "index.html")
 
 def home(request):
     carousel = [
         {"id": "DUOPEPPE", "img": "img/DUOPEPPE.png"},
-        {"id": "DUOPEPPE2", "img": "img/SUPERDUO.png"},
-        {"id": "DUOPEPPE3", "img": "img/PIZZAGAMER.png"},
+        {"id": "PIZZADUO", "img": "img/PIZZADUO.jpg"},
+        {"id": "PIZZAGAMER", "img": "img/PIZZAGAMER.png"},
     ]
-    return render(request, 'index.html', {"carousel": carousel})
-
+    return render(request, "index.html", {"carousel": carousel})
 
 def acceso(request):
     if request.method == "POST":
@@ -97,19 +95,102 @@ def perfil(request):
     }
     return render(request, "perfil.html", context)
 
-
 def pizzas(request):
-    pizzas = Pizza.objects.all()
+    pizzas = [
+        {
+            "id": 1,
+            "nombre": "Pizza Margarita",
+            "descripcion": "Clásica con tomate, mozzarella y albahaca.",
+            "precio": 7990,
+            "imagen": "img/margarita.jpeg",
+        },
+        {
+            "id": 2,
+            "nombre": "Pizza Pepperoni",
+            "descripcion": "Mozzarella y abundante pepperoni.",
+            "precio": 8990,
+            "imagen": "img/pepperoni.jpeg",
+        },
+        {
+            "id": 3,
+            "nombre": "Pizza Vegetariana",
+            "descripcion": "Con champiñones, pimientos y aceitunas.",
+            "precio": 8490,
+            "imagen": "img/hawaiana.avif",
+        },
+    ]
     return render(request, "pizzas.html", {"pizzas": pizzas})
 
 def promociones(request):
-    promos = Promocion.objects.all()
+    promos = [
+        {
+            "id": 1,
+            "titulo": "Promo Duo Bocarella",
+            "descripcion": "2 pizzas medianas + bebida",
+            "precio": 15990,
+            "imagen": "img/DUOPEPPE.png"
+        },
+        {
+            "id": 2,
+            "titulo": "Promo Gamer",
+            "descripcion": "1 pizza gamer + bebida + postre",
+            "precio": 12990,
+            "imagen": "img/PIZZAGAMER.png"
+        },
+        {
+            "id": 3,
+            "titulo": "Pizza Duo",
+            "descripcion": "2 pizzas grandes al mejor precio",
+            "precio": 17990,
+            "imagen": "img/PIZZADUO.jpg"
+        }
+    ]
+
     return render(request, "promociones.html", {"promos": promos})
 
 def acompanamientos(request):
-    acomp = Acompanamiento.objects.all()
-    return render(request, "acompanamientos.html", {"acompanamientos": acomp})
+    acompanamientos = [
+        {
+            "id": 1,
+            "nombre": "Tiramisu",
+            "precio": 1490,
+            "imagen": "tiramisu.webp"
+        },
+        {
+            "id": 2,
+            "nombre": "Cheescake",
+            "precio": 990,
+            "imagen": "cheesecakefrutilla.webp"
+        },
+        {
+            "id": 3,
+            "nombre": "Papas Fritas",
+            "precio": 2990,
+            "imagen": "img/papasfritas.jpg"
+        }
+    ]
+
+    return render(request, "acompanamientos.html", {"acompanamientos": acompanamientos})
 
 def extras(request):
-    extras = Extra.objects.all()
+    extras = [
+        {
+            "id": 1,
+            "nombre": "Helado de Vainilla",
+            "precio": 1990,
+            "imagen": "img/helado_vainilla.png"
+        },
+        {
+            "id": 2,
+            "nombre": "Brownie",
+            "precio": 2490,
+            "imagen": "img/brownie.png"
+        },
+        {
+            "id": 3,
+            "nombre": "Cheesecake",
+            "precio": 2990,
+            "imagen": "img/cheesecake.png"
+        }
+    ]
     return render(request, "extras.html", {"extras": extras})
