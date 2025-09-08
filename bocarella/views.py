@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Perfil
-
+from .models import Pizza, Promocion, Acompanamiento, Extra
 
 
 def home(request):
@@ -96,3 +96,20 @@ def perfil(request):
         "perfil": perfil
     }
     return render(request, "perfil.html", context)
+
+
+def pizzas(request):
+    pizzas = Pizza.objects.all()
+    return render(request, "pizzas.html", {"pizzas": pizzas})
+
+def promociones(request):
+    promos = Promocion.objects.all()
+    return render(request, "promociones.html", {"promos": promos})
+
+def acompanamientos(request):
+    acomp = Acompanamiento.objects.all()
+    return render(request, "acompanamientos.html", {"acompanamientos": acomp})
+
+def extras(request):
+    extras = Extra.objects.all()
+    return render(request, "extras.html", {"extras": extras})

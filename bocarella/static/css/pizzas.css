@@ -1,0 +1,46 @@
+/* Estilos generales para todos los botones del subheader */
+.btn-outline-custom {
+    border-width: 2px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+/* Botón Promociones */
+.promociones-btn {
+    color: #d9534f; /* color del texto */
+    border-color: #d9534f; /* color del borde */
+}
+.promociones-btn:hover {
+    background-color: #d9534f;
+    color: white;
+}
+
+/* Botón Pizzas */
+.pizzas-btn {
+    color: #5cb85c;
+    border-color: #5cb85c;
+}
+.pizzas-btn:hover {
+    background-color: #5cb85c;
+    color: white;
+}
+
+/* Botón Acompañamientos */
+.acompanamientos-btn {
+    color: #f0ad4e;
+    border-color: #f0ad4e;
+}
+.acompanamientos-btn:hover {
+    background-color: #f0ad4e;
+    color: white;
+}
+
+/* Botón Extras */
+.extras-btn {
+    color: #5bc0de;
+    border-color: #5bc0de;
+}
+.extras-btn:hover {
+    background-color: #5bc0de;
+    color: white;
+}
