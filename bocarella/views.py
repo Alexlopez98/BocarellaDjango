@@ -128,21 +128,21 @@ def promociones(request):
             "titulo": "Promo Duo Bocarella",
             "descripcion": "2 pizzas medianas + bebida",
             "precio": 15990,
-            "imagen": "img/DUOPEPPE.png"
+            "imagen": "img/duopepe.png"
         },
         {
             "id": 2,
             "titulo": "Promo Gamer",
             "descripcion": "1 pizza gamer + bebida + postre",
             "precio": 12990,
-            "imagen": "img/PIZZAGAMER.png"
+            "imagen": "img/pizzagamer.jpg"
         },
         {
             "id": 3,
             "titulo": "Pizza Duo",
             "descripcion": "2 pizzas grandes al mejor precio",
             "precio": 17990,
-            "imagen": "img/PIZZADUO.jpg"
+            "imagen": "img/pizzaduo.jpg"
         }
     ]
 
@@ -154,13 +154,13 @@ def acompanamientos(request):
             "id": 1,
             "nombre": "Tiramisu",
             "precio": 1490,
-            "imagen": "tiramisu.webp"
+            "imagen": "img/tiramisu.webp"
         },
         {
             "id": 2,
-            "nombre": "Cheescake",
+            "nombre": "Alitas de pollo",
             "precio": 990,
-            "imagen": "cheesecakefrutilla.webp"
+            "imagen": "img/alitaspollo.avif"
         },
         {
             "id": 3,
@@ -176,21 +176,21 @@ def extras(request):
     extras = [
         {
             "id": 1,
-            "nombre": "Helado de Vainilla",
+            "nombre": "Bebidas en lata",
             "precio": 1990,
-            "imagen": "img/helado_vainilla.png"
+            "imagen": "img/bebidas.jpg"
         },
         {
             "id": 2,
             "nombre": "Brownie",
             "precio": 2490,
-            "imagen": "img/brownie.png"
+            "imagen": "img/browniehelado.png"
         },
         {
             "id": 3,
             "nombre": "Cheesecake",
             "precio": 2990,
-            "imagen": "img/cheesecake.png"
+            "imagen": "img/cheesecakefrutilla.webp"
         }
     ]
     return render(request, "extras.html", {"extras": extras})

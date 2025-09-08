@@ -1,6 +1,14 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+# models.py
+# No usamos base de datos por ahora. 
+# Los modelos se simulan en fake_data.py
+# dejamos listos para usar base de datos
+
+
+
+
 class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     direccion = models.CharField(max_length=255, blank=True)
