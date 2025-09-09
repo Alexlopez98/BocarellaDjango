@@ -101,14 +101,14 @@ def perfil(request):
 # ------------------------------
 PRODUCTOS = [
     # Pizzas
-    {"id": 1, "nombre": "Margarita", "descripcion": "Pizza clásica con tomate y queso", "precio": 7990, "imagen": "img/margarita.jpeg", "categoria": "pizza"},
-    {"id": 2, "nombre": "Pepperoni", "descripcion": "Pizza con pepperoni y queso", "precio": 8990, "imagen": "img/pepperoni.jpeg", "categoria": "pizza"},
-    {"id": 3, "nombre": "hawaiana", "descripcion": "pizza con piña y queso", "precio": 8490, "imagen": "img/hawaiana.avif", "categoria": "pizza"},
+    {"id": 1, "nombre": "MARGARITA", "descripcion": "Pizza clásica con tomate y queso", "precio": 7990, "imagen": "img/margarita.jpeg", "categoria": "pizza"},
+    {"id": 2, "nombre": "PEPPERONI", "descripcion": "Pizza con pepperoni y queso", "precio": 8990, "imagen": "img/pepperoni.jpeg", "categoria": "pizza"},
+    {"id": 3, "nombre": "HAWAIANA", "descripcion": "Pizza con piña y queso", "precio": 8490, "imagen": "img/hawaiana.avif", "categoria": "pizza"},
 
     # Promociones
-    {"id": 10, "nombre": "Promo Duo Bocarella", "descripcion": "2 pizzas medianas + bebida", "precio": 15990, "imagen": "img/duopepe.png", "categoria": "promocion"},
-    {"id": 11, "nombre": "Promo Gamer", "descripcion": "1 pizza gamer + bebida + postre", "precio": 12990, "imagen": "img/pizzagamer.jpg", "categoria": "promocion"},
-    {"id": 12, "nombre": "Pizza Duo", "descripcion": "2 pizzas grandes al mejor precio", "precio": 17990, "imagen": "img/pizzaduo.jpg", "categoria": "promocion"},
+    {"id": 10, "nombre": "Promo Duo Bocarella", "descripcion": "2 Pizzas medianas + bebida", "precio": 15990, "imagen": "img/duopepe.png", "categoria": "promocion"},
+    {"id": 11, "nombre": "Promo Gamer", "descripcion": "1 Pizza gamer + bebida + postre", "precio": 12990, "imagen": "img/pizzagamer.jpg", "categoria": "promocion"},
+    {"id": 12, "nombre": "Pizza Duo", "descripcion": "2 Pizzas grandes al mejor precio", "precio": 17990, "imagen": "img/pizzaduo.jpg", "categoria": "promocion"},
 
     # Acompañamientos
     {"id": 20, "nombre": "Tiramisu", "precio": 1490, "imagen": "img/tiramisu.webp", "categoria": "acompanamiento"},
