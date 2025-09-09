@@ -1,51 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("perfilForm");
-
-  const campos = {
-    nombre: document.getElementById("perfilNombre"),
-    email: document.getElementById("perfilEmail"),
-    direccion: document.getElementById("perfilDireccion"),
-    pass: document.getElementById("perfilPass"),
-    confirm: document.getElementById("perfilConfirm")
-  };
-
   const passRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,18}$/;
 
-  const strengthBar = document.querySelector("#passwordStrength");
-  const strengthFill = strengthBar.querySelector(".progress-bar");
+  // Login
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("✅ Bienvenido DemoUser");
+      window.location.href = "/";  // redirige al index
+    });
+  }
 
-  Object.values(campos).forEach(campo => {
-    campo.addEventListener("input", () => campo.classList.remove("is-invalid"));
-  });
+  // Registro
+  const registroForm = document.getElementById("registroForm");
+  if (registroForm) {
+    const pass = document.getElementById("regPass");
+    const confirm = document.getElementById("regConfirm");
+    const strengthBar = document.createElement("div");
+    strengthBar.className = "progress my-2";
+    strengthBar.innerHTML = `<div class="progress-bar" role="progressbar" style="width: 0%;"></div>`;
+    pass.parentNode.appendChild(strengthBar);
+    const strengthFill = strengthBar.querySelector(".progress-bar");
 
-  campos.pass.addEventListener("input", () => {
-    const val = campos.pass.value;
-    strengthBar.classList.toggle("d-none", val === "");
+    pass.addEventListener("input", () => {
+      const val = pass.value;
+      let strength = 0;
+      if (val.length >= 6) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/\d/.test(val)) strength++;
+      if (/[@$!%*?&]/.test(val)) strength++;
 
-    let strength = 0;
-    if (val.length >= 6) strength++;
-    if (/[A-Z]/.test(val)) strength++;
-    if (/\d/.test(val)) strength++;
-    if (/[@$!%*?&]/.test(val)) strength++;
+      const colors = ["bg-danger", "bg-warning", "bg-info", "bg-success"];
+      strengthFill.style.width = `${(strength / 4) * 100}%`;
+      strengthFill.className = `progress-bar ${colors[strength - 1] || "bg-danger"}`;
+    });
 
-    const colors = ["danger", "warning", "info", "success"];
-    strengthFill.style.width = `${(strength / 4) * 100}%`;
-    strengthFill.className = `progress-bar bg-${colors[strength - 1] || "danger"}`;
-  });
+    registroForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (pass.value !== confirm.value) {
+        alert("❌ Las contraseñas no coinciden");
+        return;
+      }
+      if (!passRegex.test(pass.value)) {
+        alert("❌ Contraseña débil");
+        return;
+      }
+      alert("✅ Registro exitoso (Demo)");
+      window.location.href = "/";  // redirige al index
+    });
+  }
 
-  form.addEventListener("submit", e => {
-    // Front-end opcional: solo para feedback visual
-    let valido = true;
+  // Perfil (solo visual)
+  const perfilPass = document.getElementById("perfilPass");
+  if (perfilPass) {
+    const perfilStrengthBar = document.createElement("div");
+    perfilStrengthBar.className = "progress my-2";
+    perfilStrengthBar.innerHTML = `<div class="progress-bar" role="progressbar" style="width: 0%;"></div>`;
+    perfilPass.parentNode.appendChild(perfilStrengthBar);
+    const perfilStrengthFill = perfilStrengthBar.querySelector(".progress-bar");
 
-    if (!campos.nombre.value.trim()) { campos.nombre.classList.add("is-invalid"); valido = false; }
-    if (!campos.email.checkValidity()) { campos.email.classList.add("is-invalid"); valido = false; }
-    if (campos.direccion.value.trim().length < 5) { campos.direccion.classList.add("is-invalid"); valido = false; }
+    perfilPass.addEventListener("input", () => {
+      const val = perfilPass.value;
+      let strength = 0;
+      if (val.length >= 6) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/\d/.test(val)) strength++;
+      if (/[@$!%*?&]/.test(val)) strength++;
 
-    if (campos.pass.value !== "") {
-      if (!passRegex.test(campos.pass.value)) { campos.pass.classList.add("is-invalid"); valido = false; }
-      if (campos.confirm.value !== campos.pass.value || campos.confirm.value === "") { campos.confirm.classList.add("is-invalid"); valido = false; }
-    }
-
-    if (!valido) e.preventDefault();
-  });
+      const colors = ["bg-danger", "bg-warning", "bg-info", "bg-success"];
+      perfilStrengthFill.style.width = `${(strength / 4) * 100}%`;
+      perfilStrengthFill.className = `progress-bar ${colors[strength - 1] || "bg-danger"}`;
+    });
+  }
 });
