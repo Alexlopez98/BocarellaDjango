@@ -1,3 +1,14 @@
+
+body {
+    background-color: #F5F5DC;
+    color: rgb(27, 26, 26);
+}
+
+nav.bg-light {
+  background-color: #F5F5DC !important; /* fondo negro */
+  border-bottom: 1px solid #333; /* borde gris oscuro */
+}
+
 /* Estilos generales para todos los botones del subheader */
 .btn-outline-custom {
     border-width: 2px;

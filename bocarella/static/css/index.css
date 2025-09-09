@@ -1,4 +1,9 @@
 
+body {
+    background-color: #F5F5DC;
+    color: rgb(27, 26, 26);
+}
+
 .bannerid img {
     border-radius: 10px;
     object-fit: cover;

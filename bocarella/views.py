@@ -10,9 +10,9 @@ from django.contrib import messages
 # ------------------------------
 def home(request):
     carousel = [
-        {"id": "DUOPEPPE", "img": "img/DUOPEPPE.png"},
-        {"id": "PIZZADUO", "img": "img/PIZZADUO.jpg"},
-        {"id": "PIZZAGAMER", "img": "img/PIZZAGAMER.png"},
+        {"id": "DUOPEPPE", "img": "img/duopepe.png"},
+        {"id": "PIZZADUO", "img": "img/pizzaduo.jpg"},
+        {"id": "PIZZAGAMER", "img": "img/pizzagamer.jpg"},
     ]
     return render(request, "index.html", {"carousel": carousel})
 
