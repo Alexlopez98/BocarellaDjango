@@ -38,9 +38,10 @@
                 <h5 class="card-title">{{ promo.titulo }}</h5>
                 <p class="card-text">{{ promo.descripcion }}</p>
                 <p class="fw-bold">${{ promo.precio }}</p>
-                <button class="btn btn-success w-100">
+                <!-- Botón Agregar al Carrito -->
+                <a href="{% url 'agregar_al_carrito' promo.id %}" class="btn btn-success w-100">
                   <i class="fa-solid fa-cart-plus"></i> Agregar
-                </button>
+                </a>
               </div>
             </div>
           </div>

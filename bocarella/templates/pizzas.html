@@ -27,6 +27,7 @@
       <a href="{% url 'pizzas' %}" class="btn btn-outline-custom mx-2">🍕 Pizzas</a>
       <a href="{% url 'acompanamientos' %}" class="btn btn-outline-custom mx-2">🥤 Acompañamientos</a>
       <a href="#" class="btn btn-outline-custom mx-2">🍰 Extras</a>
+      </a>
     </div>
   </nav>
 
@@ -42,9 +43,9 @@
               <h5 class="card-title">{{ pizza.nombre }}</h5>
               <p class="card-text">{{ pizza.descripcion }}</p>
               <p class="fw-bold">${{ pizza.precio }}</p>
-              <button class="btn btn-success w-100">
+              <a href="{% url 'agregar_al_carrito' pizza.id %}" class="btn btn-success w-100">
                 <i class="fa-solid fa-cart-plus"></i> Agregar
-              </button>
+              </a>
             </div>
           </div>
         </div>
