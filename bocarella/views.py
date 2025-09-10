@@ -3,7 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-#from .models import Perfil
+from .models import Perfil
+from .forms import RegistroForm, PerfilForm
 
 # ------------------------------
 # HOME
@@ -17,84 +18,90 @@ def home(request):
     return render(request, "index.html", {"carousel": carousel})
 
 # ------------------------------
-# ACCESO / REGISTRO / CERRAR SESIÓN
+# Registro de usuario
 # ------------------------------
-def acceso(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        try:
-            user = User.objects.get(email=email)
-            username = user.username
-        except User.DoesNotExist:
-            messages.error(request, "❌ Usuario no encontrado.")
-            return redirect("acceso")
+def registro_view(request):
+    if request.method == 'POST':
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            # Crear perfil con rol por defecto 'user'
+            Perfil.objects.create(user=user, rol='user')
+            login(request, user)
+            messages.success(request, f"✅ Bienvenido {user.username}")
+            return redirect('index')  # redirige al inicio
+        else:
+            messages.error(request, "❌ Corrige los errores del formulario")
+    else:
+        form = RegistroForm()
+    return render(request, 'registro.html', {'form': form})
 
+
+# ------------------------------
+# Login
+# ------------------------------
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            messages.success(request, f"✅ Bienvenido {user.username}")
-            return redirect("index")
+            messages.success(request, f"Bienvenido {user.username}")
+            # Redirigir según rol
+            if hasattr(user, 'perfil') and user.perfil.rol == 'admin':
+                return redirect('admin_dashboard')
+            else:
+                return redirect('index')
         else:
-            messages.error(request, "❌ Contraseña incorrecta.")
-    return render(request, "acceso.html")
+            messages.error(request, "Usuario o contraseña incorrectos")
+    return render(request, 'login.html')
 
-def registro(request):
-    if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        usuario = request.POST.get("usuario")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        if User.objects.filter(username=usuario).exists() or User.objects.filter(email=email).exists():
-            messages.error(request, "❌ Usuario o correo ya registrado.")
-            return redirect("registro")
-        user = User.objects.create_user(username=usuario, email=email, password=password, first_name=nombre)
-        messages.success(request, "✅ Registro exitoso. Ya puedes iniciar sesión.")
-        return redirect("acceso")
-    return render(request, "registro.html")
-
-def cerrar_sesion(request):
-    logout(request)
-    messages.info(request, "👋 Sesión cerrada.")
-    return redirect("index")
 
 # ------------------------------
-# PERFIL
+# Logout
 # ------------------------------
 @login_required
-def perfil(request):
-    user = request.user
-    perfil, created = Perfil.objects.get_or_create(user=user)
+def logout_view(request):
+    logout(request)
+    messages.info(request, "👋 Has cerrado sesión correctamente")
+    return redirect('index')
 
-    if request.method == "POST":
-        nombre = request.POST.get("perfilNombre").strip()
-        email = request.POST.get("perfilEmail").strip()
-        direccion = request.POST.get("perfilDireccion").strip()
-        password = request.POST.get("perfilPass")
-        confirm = request.POST.get("perfilConfirm")
 
-        if nombre and email and direccion:
-            user.first_name = nombre
-            user.email = email
-            perfil.direccion = direccion
+# ------------------------------
+# Perfil de usuario
+# ------------------------------
+@login_required
+def perfil_view(request):
+    perfil = request.user.perfil
+    if request.method == 'POST':
+        form = PerfilForm(request.POST, instance=perfil)
+        if form.is_valid():
+            form.save()
+            # Actualizar nombre y apellido del usuario
+            request.user.first_name = request.POST.get('first_name', request.user.first_name)
+            request.user.last_name = request.POST.get('last_name', request.user.last_name)
+            request.user.save()
+            
+            messages.success(request, "Perfil actualizado correctamente")
+            return redirect('perfil')
+    else:
+        form = PerfilForm(instance=perfil)
+    
+    return render(request, 'perfil.html', {'form': form})
 
-            if password:
-                if password == confirm:
-                    user.set_password(password)
-                else:
-                    messages.error(request, "❌ Las contraseñas no coinciden.")
-                    return redirect("perfil")
 
-            user.save()
-            perfil.save()
-            messages.success(request, "✅ Perfil actualizado correctamente.")
-            return redirect("perfil")
-        else:
-            messages.error(request, "❌ Todos los campos son obligatorios.")
-            return redirect("perfil")
-
-    context = {"user": user, "perfil": perfil}
-    return render(request, "perfil.html", context)
+# ------------------------------
+# Dashboard de administrador
+# ------------------------------
+@login_required
+def admin_dashboard(request):
+    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'admin':
+        messages.warning(request, "No tienes permisos de administrador")
+        return redirect('index')
+    return render(request, 'admin_dashboard.html')
 
 # ------------------------------
 # PRODUCTOS EN MEMORIA

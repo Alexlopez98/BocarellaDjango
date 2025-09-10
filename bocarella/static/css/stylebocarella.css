@@ -23,13 +23,13 @@ h2 {
   transition: all 0.3s ease;
 }
 .nav-tabs .nav-link.active {
-  color: #fc9700;
-  background-color: #1c1c1c;
-  border-bottom: 3px solid #fc9700;
+  color: #ffffff;
+  background-color: #2E7D32;
+  border-bottom: 3px solid #ffffff;
   font-weight: bold;
 }
 .nav-tabs .nav-link:hover {
-  color: #fc9700;
+  color: #B71C1C;
 }
 
 .form-control {
