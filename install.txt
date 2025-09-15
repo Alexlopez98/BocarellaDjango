@@ -1,0 +1,58 @@
+Instructivo de Instalación – Proyecto Django
+============================================
+
+1. Requisitos previos
+---------------------
+- Tener instalado Python 3.10 o superior (descargar desde: https://www.python.org/downloads/)
+- Tener instalado pip (incluido con Python)
+- Tener instalado git (para clonar el repositorio)
+- Tener Oracle Client si se usará 'oracledb' .
+
+2. Clonar el repositorio
+------------------------
+git clone https://github.com/Alexlopez98/BocarellaDjango.git
+cd proyecto
+
+3. Instalar requerimientos
+--------------------------
+Ejecutar en la terminal (PowerShell, CMD o bash):
+
+    pip install -r requirements.txt
+
+Esto instalará Django y todas las librerías necesarias (incluido oracledb).
+
+4. Configuración de base de datos
+---------------------------------
+En settings.py, configurar la conexión. Ejemplo para Oracle con nustros datos:
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME':'127.0.0.1:1521/orcl',
+        'USER': 'c###bocarella',
+        'PASSWORD': 'bocarella',
+        'TEST':{
+            'USER': 'default_test',
+            'TBLSPACE': 'default_test_tbls',
+            'TBLSPACE_TMP': 'default_test_tbls_tmp',
+        },
+    },
+}
+
+5. Aplicar migraciones
+----------------------
+    python manage.py migrate
+
+6. Crear superusuario
+---------------------
+    python manage.py createsuperuser
+
+7. Levantar servidor
+--------------------
+    python manage.py runserver
+
+El proyecto quedará disponible en:
+http://127.0.0.1:8000/
+
+============================================
+Listo: Con estos pasos, cualquiera puede clonar y correr el proyecto de forma portable.
