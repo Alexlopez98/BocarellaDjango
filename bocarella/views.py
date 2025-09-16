@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
 
@@ -99,8 +102,9 @@ def ver_carrito(request):
     carrito = request.session.get('carrito', {})
     items = []
     total = 0
-    for producto_id, cantidad in carrito.items():
-        # Buscamos en todos los modelos
+
+    for producto_id_str, cantidad in carrito.items():
+        producto_id = int(producto_id_str)
         producto = None
         for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
             try:
@@ -116,21 +120,54 @@ def ver_carrito(request):
                 "cantidad": cantidad,
                 "total": subtotal,
             })
-    contexto = {"carrito": {"items": items, "total": total}}
-    return render(request, "carrito.html", contexto)
 
+    return render(request, "carrito.html", {"carrito": {"items": items, "total": total}})
+
+# ------------------------------
+# Agregar al carrito
+# ------------------------------
 def agregar_al_carrito(request, producto_id):
     carrito = request.session.get('carrito', {})
-    carrito[str(producto_id)] = carrito.get(str(producto_id), 0) + 1
+    pid = str(producto_id)
+    carrito[pid] = carrito.get(pid, 0) + 1
     request.session['carrito'] = carrito
-    return redirect(request.META.get('HTTP_REFERER', '/'))
 
+    # Obtener subtotal del producto
+    producto = None
+    for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
+        try:
+            producto = modelo.objects.get(id=producto_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    subtotal = producto.precio * carrito[pid] if producto else 0
+
+    return JsonResponse({'qty': carrito[pid], 'subtotal': subtotal})
+
+# Eliminar del carrito
 def eliminar_del_carrito(request, producto_id):
-    carrito = request.session.get('carrito', {})
-    if str(producto_id) in carrito:
-        del carrito[str(producto_id)]
-        request.session['carrito'] = carrito
-    return redirect('carrito')
+    carrito = request.session.get("carrito", {})
+    pid = str(producto_id)
+    if pid in carrito:
+        if carrito[pid] > 1:
+            carrito[pid] -= 1
+        else:
+            carrito.pop(pid)
+        request.session["carrito"] = carrito
+
+    # Obtener subtotal actualizado
+    producto = None
+    for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
+        try:
+            producto = modelo.objects.get(id=producto_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    subtotal = producto.precio * carrito.get(pid,0) if producto else 0
+
+    return JsonResponse({'qty': carrito.get(pid,0), 'subtotal': subtotal})
+
+
 
 @login_required
 def checkout(request):

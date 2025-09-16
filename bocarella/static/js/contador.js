@@ -1,59 +1,78 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-      function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';');
-          for (let cookie of cookies) {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-            }
-          }
-        }
-        return cookieValue;
-      }
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(cookie => {
+        const [key, value] = cookie.trim().split('=');
+        if (key === name) cookieValue = decodeURIComponent(value);
+      });
+    }
+    return cookieValue;
+  }
 
-      const updateCart = async (pizzaId, action) => {
-        const response = await fetch(`/carrito/update/${pizzaId}/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-          },
-          body: JSON.stringify({ action: action })
-        });
-        const data = await response.json();
-        const container = document.getElementById(`container-${pizzaId}`);
+  function crearControl(id, cantidad) {
+    const container = document.getElementById(`container-${id}`);
+    container.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-danger btn-sm btn-minus" data-id="${id}">-</button>
+        <span class="mx-2 fw-bold quantity" id="qty-${id}">${cantidad}</span>
+        <button class="btn btn-success btn-sm btn-plus" data-id="${id}">+</button>
+      </div>
+    `;
+    agregarEventos(id);
+  }
 
-        if (data.cantidad > 0) {
-          container.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-              <button class="btn btn-danger btn-sm btn-minus" data-id="${pizzaId}">-</button>
-              <span class="mx-2 fw-bold quantity" id="qty-${pizzaId}">${data.cantidad}</span>
-              <button class="btn btn-success btn-sm btn-plus" data-id="${pizzaId}">+</button>
-            </div>
-          `;
-        } else {
-          container.innerHTML = `<button class="btn btn-add-full btn-add" data-id="${pizzaId}">Agregar</button>`;
-        }
+  function agregarEventos(id) {
+    const btnPlus = document.querySelector(`#container-${id} .btn-plus`);
+    const btnMinus = document.querySelector(`#container-${id} .btn-minus`);
+    const qtySpan = document.getElementById(`qty-${id}`);
 
-        attachButtons(); // Reasignar eventos
-      };
-
-      function attachButtons() {
-        document.querySelectorAll('.btn-plus').forEach(btn => {
-          btn.onclick = () => updateCart(btn.dataset.id, 'add');
-        });
-        document.querySelectorAll('.btn-minus').forEach(btn => {
-          btn.onclick = () => updateCart(btn.dataset.id, 'remove');
-        });
-        document.querySelectorAll('.btn-add').forEach(btn => {
-          btn.onclick = () => updateCart(btn.dataset.id, 'add');
-        });
-      }
-
-      attachButtons();
-
+    btnPlus.addEventListener("click", () => {
+      fetch(`/carrito/agregar/${id}/`, {
+        method: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      })
+      .then(res => res.json())
+      .then(data => {
+        qtySpan.textContent = data.qty;
+      });
     });
+
+    btnMinus.addEventListener("click", () => {
+      fetch(`/carrito/eliminar/${id}/`, {
+        method: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.qty <= 0) {
+          const container = document.getElementById(`container-${id}`);
+          container.innerHTML = `<button class="btn btn-add-full btn-add" data-id="${id}">Agregar</button>`;
+          agregarBotonAgregar();
+        } else {
+          qtySpan.textContent = data.qty;
+        }
+      });
+    });
+  }
+
+  function agregarBotonAgregar() {
+    document.querySelectorAll(".btn-add").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        fetch(`/carrito/agregar/${id}/`, {
+          method: "POST",
+          headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(res => res.json())
+        .then(data => {
+          crearControl(id, data.qty);
+        });
+      });
+    });
+  }
+
+  agregarBotonAgregar();
+
+});
