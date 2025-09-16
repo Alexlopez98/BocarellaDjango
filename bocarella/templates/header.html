@@ -23,14 +23,34 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'pizzas' %}">Menú</a>
         </li>
+
+        <!-- Carrito con suma total de cantidades -->
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'carrito' %}">carrito</a>
+          <a class="nav-link position-relative" href="{% url 'carrito' %}">
+            🛒 Carrito
+            {% if request.session.carrito %}
+              {% with 0 as total_cantidad %}
+                {% for key, cantidad in request.session.carrito.items %}
+                  {% with total_cantidad|add:cantidad as total_cantidad %}
+                  {% endwith %}
+                {% endfor %}
+                {% if total_cantidad > 0 %}
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ total_cantidad }}
+                  </span>
+                {% endif %}
+              {% endwith %}
+            {% endif %}
+          </a>
         </li>
 
         <!-- Autenticación -->
         {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'historial' %}">Historial</a>
           </li>
           <li class="nav-item">
             <span class="nav-link">Hola, {{ user.username }}</span>

@@ -16,32 +16,53 @@
     <div class="card custom-bg shadow text-light p-4">
       <h2 class="text-center mb-4">Registro</h2>
 
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
       <form method="post" id="registroForm">
         {% csrf_token %}
 
         <div class="mb-3">
           <label for="id_first_name" class="form-label">Nombre</label>
           {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="id_last_name" class="form-label">Apellido</label>
           {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="id_username" class="form-label">Usuario</label>
           {{ form.username }}
+          {% if form.username.errors %}
+            <div class="text-danger small">{{ form.username.errors.0 }}</div>
+          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="id_email" class="form-label">Correo</label>
           {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="id_password" class="form-label">Contraseña</label>
           {{ form.password }}
+          {% if form.password.errors %}
+            <div class="text-danger small">{{ form.password.errors.0 }}</div>
+          {% endif %}
           <div class="progress mt-1">
             <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
           </div>
@@ -51,6 +72,9 @@
         <div class="mb-3">
           <label for="id_password_confirm" class="form-label">Confirmar contraseña</label>
           {{ form.password_confirm }}
+          {% if form.password_confirm.errors %}
+            <div class="text-danger small">{{ form.password_confirm.errors.0 }}</div>
+          {% endif %}
         </div>
 
         <button type="submit" class="btn btn-warning w-100">Registrarse</button>

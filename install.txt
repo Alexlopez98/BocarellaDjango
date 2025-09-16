@@ -13,7 +13,7 @@ Instructivo de Instalación – Proyecto Django
 git clone https://github.com/Alexlopez98/BocarellaDjango.git
 cd proyecto
 
-3. Instalar requerimientos
+3. Instalar requerimientos desde la carpeta del proyecto.
 --------------------------
 Ejecutar en la terminal (PowerShell, CMD o bash):
 
