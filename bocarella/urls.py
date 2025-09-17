@@ -16,6 +16,8 @@ urlpatterns = [
     path('carrito/eliminar/<str:tipo>/<int:id>/', views.eliminar_carrito, name='eliminar_carrito'),
     path("checkout/", views.checkout, name="checkout"),
     path("historial/", views.historial, name="historial"),
+    path('carrito/count/', views.carrito_count, name='carrito_count'),
+
 
     # Productos
     path("pizzas/", views.pizzas, name="pizzas"),

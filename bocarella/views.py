@@ -236,7 +236,12 @@ def checkout(request):
     messages.success(request, "✅ Tu compra fue registrada correctamente")
     return redirect('historial')
 
+def carrito_count(request):
+    carrito = request.session.get('carrito', {})
+    total_items = sum(carrito.values())  # suma de cantidades de todos los productos
+    return JsonResponse({'count': total_items})
 
+    
 # ------------------------------
 # Historial de compras
 # ------------------------------

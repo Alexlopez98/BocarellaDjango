@@ -24,23 +24,22 @@
           <a class="nav-link" href="{% url 'pizzas' %}">Menú</a>
         </li>
 
-        <!-- Carrito con suma total de cantidades -->
-        <li class="nav-item">
-          <a class="nav-link position-relative" href="{% url 'carrito' %}">
+        <!-- Carrito con contador -->
+        <li class="nav-item position-relative">
+          <a class="nav-link" href="{% url 'carrito' %}">
             🛒 Carrito
-            {% if request.session.carrito %}
-              {% with 0 as total_cantidad %}
-                {% for key, cantidad in request.session.carrito.items %}
-                  {% with total_cantidad|add:cantidad as total_cantidad %}
-                  {% endwith %}
-                {% endfor %}
-                {% if total_cantidad > 0 %}
-                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {{ total_cantidad }}
-                  </span>
-                {% endif %}
-              {% endwith %}
-            {% endif %}
+            <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              {% if request.session.carrito %}
+                {% with 0 as total_cantidad %}
+                  {% for key, cantidad in request.session.carrito.items %}
+                    {% with total_cantidad|add:cantidad as total_cantidad %}{% endwith %}
+                  {% endfor %}
+                  {{ total_cantidad }}
+                {% endwith %}
+              {% else %}
+                0
+              {% endif %}
+            </span>
           </a>
         </li>
 
@@ -72,3 +71,24 @@
 </nav>
 
 <link rel="stylesheet" href="{% static 'css/headerandfooter.css' %}">
+
+<!-- Script para actualizar contador del carrito en vivo -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const countEl = document.getElementById("cart-count");
+
+  function actualizarContador() {
+    fetch("/carrito/count/")  // Asegúrate de tener esta URL en urls.py y view
+      .then(res => res.json())
+      .then(data => {
+        if (countEl) countEl.textContent = data.count;
+      });
+  }
+
+  // Actualiza al cargar la página
+  actualizarContador();
+
+  // Actualiza cada 5 segundos
+  setInterval(actualizarContador, 1000);
+});
+</script>
