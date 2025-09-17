@@ -22,6 +22,7 @@
         {% endfor %}
       {% endif %}
 
+      <!-- FORMULARIO DATOS PERSONALES -->
       <form method="post">
         {% csrf_token %}
 
@@ -53,6 +54,28 @@
           <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
         </div>
       </form>
+
+      <hr class="my-4">
+
+      <!-- FORMULARIO CAMBIAR CONTRASEÑA -->
+      <h4 class="mb-3">Cambiar contraseña</h4>
+      <form method="post" action="{% url 'cambiar_clave' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="old_password" class="form-label">Contraseña actual</label>
+          <input type="password" name="old_password" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="new_password1" class="form-label">Nueva contraseña</label>
+          <input type="password" name="new_password1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="new_password2" class="form-label">Repetir nueva contraseña</label>
+          <input type="password" name="new_password2" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-warning">Cambiar contraseña</button>
+      </form>
+
     </div>
   </main>
 

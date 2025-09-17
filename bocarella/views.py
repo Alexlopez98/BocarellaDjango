@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
@@ -84,6 +86,20 @@ def perfil_view(request):
     else:
         form = PerfilForm(instance=perfil)
     return render(request, 'perfil.html', {'form': form})
+
+@login_required
+def cambiar_clave(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # mantiene sesión activa
+            messages.success(request, '✅ Contraseña actualizada correctamente')
+            return redirect('perfil')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+    return redirect('perfil')
 
 # ------------------------------
 # Dashboard de administrador
