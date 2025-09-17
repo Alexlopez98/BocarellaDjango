@@ -103,69 +103,76 @@ def ver_carrito(request):
     items = []
     total = 0
 
-    for producto_id_str, cantidad in carrito.items():
-        producto_id = int(producto_id_str)
+    for pid, cantidad in carrito.items():
+        try:
+            tipo, producto_id = pid.split("_")
+            producto_id = int(producto_id)
+        except:
+            continue
+
         producto = None
-        for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
-            try:
-                producto = modelo.objects.get(id=producto_id)
-                break
-            except modelo.DoesNotExist:
-                continue
+        if tipo == "pizza":
+            producto = get_object_or_404(Pizza, id=producto_id)
+        elif tipo == "promocion":
+            producto = get_object_or_404(Promocion, id=producto_id)
+        elif tipo == "acompanamiento":
+            producto = get_object_or_404(Acompanamiento, id=producto_id)
+        elif tipo == "extra":
+            producto = get_object_or_404(Extra, id=producto_id)
+
         if producto:
             subtotal = producto.precio * cantidad
             total += subtotal
             items.append({
                 "producto": producto,
+                "tipo": tipo,
                 "cantidad": cantidad,
                 "total": subtotal,
             })
 
     return render(request, "carrito.html", {"carrito": {"items": items, "total": total}})
 
-# ------------------------------
-# Agregar al carrito
-# ------------------------------
-def agregar_al_carrito(request, producto_id):
+
+# ----------------- AGREGAR PRODUCTO -----------------
+def agregar_carrito(request, tipo, id):
     carrito = request.session.get('carrito', {})
-    pid = str(producto_id)
-    carrito[pid] = carrito.get(pid, 0) + 1
+    key = f"{tipo}_{id}"
+    carrito[key] = carrito.get(key, 0) + 1
     request.session['carrito'] = carrito
 
-    # Obtener subtotal del producto
+    # Calcular subtotal
     producto = None
-    for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
-        try:
-            producto = modelo.objects.get(id=producto_id)
-            break
-        except modelo.DoesNotExist:
-            continue
-    subtotal = producto.precio * carrito[pid] if producto else 0
+    if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
+    elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
+    elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=id)
+    elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
 
-    return JsonResponse({'qty': carrito[pid], 'subtotal': subtotal})
+    subtotal = producto.precio * carrito[key]
+    return JsonResponse({"qty": carrito[key], "subtotal": subtotal})
 
-# Eliminar del carrito
-def eliminar_del_carrito(request, producto_id):
-    carrito = request.session.get("carrito", {})
-    pid = str(producto_id)
-    if pid in carrito:
-        if carrito[pid] > 1:
-            carrito[pid] -= 1
-        else:
-            carrito.pop(pid)
-        request.session["carrito"] = carrito
 
-    # Obtener subtotal actualizado
-    producto = None
-    for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
-        try:
-            producto = modelo.objects.get(id=producto_id)
-            break
-        except modelo.DoesNotExist:
-            continue
-    subtotal = producto.precio * carrito.get(pid,0) if producto else 0
+# ----------------- ELIMINAR PRODUCTO -----------------
+def eliminar_carrito(request, tipo, id):
+    carrito = request.session.get('carrito', {})
+    key = f"{tipo}_{id}"
 
-    return JsonResponse({'qty': carrito.get(pid,0), 'subtotal': subtotal})
+    if key in carrito:
+        carrito[key] -= 1
+        if carrito[key] <= 0:
+            del carrito[key]
+        request.session['carrito'] = carrito
+
+        # Calcular subtotal
+        producto = None
+        if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
+        elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
+        elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=id)
+        elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
+
+        subtotal = producto.precio * carrito.get(key, 0)
+        return JsonResponse({"qty": carrito.get(key, 0), "subtotal": subtotal})
+    else:
+        return JsonResponse({"qty": 0, "subtotal": 0})
 
 
 
@@ -179,15 +186,24 @@ def checkout(request):
     total = 0
     orden = Orden.objects.create(usuario=request.user, total=0)
 
-    for producto_id_str, cantidad in carrito.items():
-        producto_id = int(producto_id_str)
+    for pid, cantidad in carrito.items():
+        # Separar tipo y id
+        try:
+            tipo, producto_id = pid.split("_")
+            producto_id = int(producto_id)
+        except ValueError:
+            continue  # Si el formato es incorrecto, saltamos
+
         producto = None
-        for modelo in [Pizza, Promocion, Acompanamiento, Extra]:
-            try:
-                producto = modelo.objects.get(id=producto_id)
-                break
-            except modelo.DoesNotExist:
-                continue
+        if tipo == "pizza":
+            producto = Pizza.objects.filter(id=producto_id).first()
+        elif tipo == "promocion":
+            producto = Promocion.objects.filter(id=producto_id).first()
+        elif tipo == "acompanamiento":
+            producto = Acompanamiento.objects.filter(id=producto_id).first()
+        elif tipo == "extra":
+            producto = Extra.objects.filter(id=producto_id).first()
+
         if producto:
             subtotal = producto.precio * cantidad
             total += subtotal
@@ -200,9 +216,10 @@ def checkout(request):
 
     orden.total = total
     orden.save()
-    request.session['carrito'] = {}
+    request.session['carrito'] = {}  # Vaciar carrito
     messages.success(request, "✅ Tu compra fue registrada correctamente")
     return redirect('historial')
+
 
 # ------------------------------
 # Historial de compras
@@ -216,17 +233,28 @@ def historial(request):
 # LISTA DE PRODUCTOS
 # ------------------------------
 def pizzas(request):
+    if "carrito" not in request.session:
+        request.session["carrito"] = {}
     lista_pizzas = Pizza.objects.all()
     return render(request, "pizzas.html", {"pizzas": lista_pizzas})
 
+
 def promociones(request):
+    if "carrito" not in request.session:
+        request.session["carrito"] = {}
     lista_promos = Promocion.objects.all()
     return render(request, "promociones.html", {"promociones": lista_promos})
 
+
 def acompanamientos(request):
+    if "carrito" not in request.session:
+        request.session["carrito"] = {}
     lista_acomp = Acompanamiento.objects.all()
     return render(request, "acompanamientos.html", {"acompanamientos": lista_acomp})
 
+
 def extras(request):
+    if "carrito" not in request.session:
+        request.session["carrito"] = {}
     lista_extras = Extra.objects.all()
     return render(request, "extras.html", {"extras": lista_extras})

@@ -27,9 +27,9 @@ class PizzaAdmin(admin.ModelAdmin):
 # ----------------------------
 @admin.register(Promocion)
 class PromocionAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'precio')
-    search_fields = ('titulo',)
-    ordering = ('titulo',)
+    list_display = ('nombre', 'precio')
+    search_fields = ('nombre',)
+    ordering = ('nombre',)
 
 
 # ----------------------------

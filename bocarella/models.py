@@ -25,13 +25,13 @@ class Pizza(models.Model):
 
 
 class Promocion(models.Model):
-    titulo = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
     precio = models.DecimalField(max_digits=8, decimal_places=0)
     imagen = models.ImageField(upload_to="promociones/")
 
     def __str__(self):
-        return self.titulo
+        return self.nombre
 
 
 class Acompanamiento(models.Model):
