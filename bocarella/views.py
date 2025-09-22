@@ -327,10 +327,8 @@ def ordenes_empleados(request):
     })
 
 @login_required
+@rol_requerido(['empleado'])
 def ordenes_empleados_json(request):
-    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
-        return HttpResponseForbidden("No tienes permiso para ver esta página.")
-    
     ordenes = Orden.objects.all().order_by('-fecha')
     data = []
     for orden in ordenes:
@@ -352,12 +350,11 @@ def ordenes_empleados_json(request):
     total_recibido = sum(orden.total for orden in ordenes)
     return JsonResponse({"ordenes": data, "total_recibido": total_recibido})
 
+
 @login_required
+@rol_requerido(['empleado'])
 @require_POST
 def avanzar_estado_orden(request, orden_id):
-    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
-        return HttpResponseForbidden("No tienes permiso.")
-
     try:
         orden = Orden.objects.get(id=orden_id)
     except Orden.DoesNotExist:
@@ -370,6 +367,7 @@ def avanzar_estado_orden(request, orden_id):
     orden.save()
 
     return JsonResponse({"ok": True, "estado": orden.estado_cocina})
+
 
 # ------------------------------
 # Error handler

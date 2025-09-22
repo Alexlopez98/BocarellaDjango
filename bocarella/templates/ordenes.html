@@ -20,25 +20,46 @@
     <button id="toggleAudioBtn" class="btn btn-success">🔔 Sonido Activado</button>
   </div>
 
-  <p class="text-center fw-bold">Total recibido: ${{ total_recibido }}</p>
+  <!-- Pestañas -->
+  <ul class="nav nav-tabs mb-3" id="ordenTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="ordenes-tab" data-bs-toggle="tab" data-bs-target="#ordenes" type="button" role="tab">Órdenes</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">Historial</button>
+    </li>
+  </ul>
 
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered">
-      <thead class="table-dark">
-        <tr>
-          <th>ID Orden</th>
-          <th>Total</th>
-          <th>Items</th>
-          <th>Tiempo</th>
-          <th>Estado / Acción</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="tab-content" id="ordenTabsContent">
+    <!-- TAB Órdenes -->
+    <div class="tab-pane fade show active" id="ordenes" role="tabpanel">
+      <p class="text-center fw-bold">Total recibido: ${{ total_recibido }}</p>
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>ID Orden</th>
+              <th>Total</th>
+              <th>Items</th>
+              <th>Tiempo</th>
+              <th>Estado / Acción</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB Historial -->
+    <div class="tab-pane fade" id="historial" role="tabpanel">
+      {% include 'historialempleados.html' %}
+    </div>
   </div>
+
 </main>
 
 {% include 'footer.html' %}
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -49,22 +70,16 @@ let ordenTimestamps = {};
 const toggleBtn = document.getElementById("toggleAudioBtn");
 toggleBtn.addEventListener("click", () => {
     audioActivado = !audioActivado;
-    if (audioActivado) {
-        toggleBtn.textContent = "🔔 Sonido Activado";
-        toggleBtn.classList.remove("btn-danger");
-        toggleBtn.classList.add("btn-success");
-    } else {
-        toggleBtn.textContent = "🔕 Sonido Bloqueado";
-        toggleBtn.classList.remove("btn-success");
-        toggleBtn.classList.add("btn-danger");
-    }
+    toggleBtn.textContent = audioActivado ? "🔔 Sonido Activado" : "🔕 Sonido Bloqueado";
+    toggleBtn.classList.toggle("btn-success", audioActivado);
+    toggleBtn.classList.toggle("btn-danger", !audioActivado);
 });
 
 function actualizarOrdenes() {
     fetch("{% url 'ordenes_empleados_json' %}")
         .then(res => res.json())
         .then(data => {
-            const tbody = document.querySelector("table tbody");
+            const tbody = document.querySelector("#ordenes tbody");
             tbody.innerHTML = "";
 
             let nuevasOrdenes = [];
@@ -95,16 +110,14 @@ function actualizarOrdenes() {
                 tbody.appendChild(fila);
             });
 
-            const totalRecibidoElem = document.querySelector("p.fw-bold");
+            const totalRecibidoElem = document.querySelector("#ordenes p.fw-bold");
             if (totalRecibidoElem) {
                 totalRecibidoElem.textContent = `Total recibido: $${data.total_recibido}`;
             }
 
-            if (nuevasOrdenes.length > 0 && audioActivado) {
-                audio.play().catch(e => console.log("Error al reproducir audio:", e));
-            }
+            if (nuevasOrdenes.length > 0 && audioActivado) audio.play().catch(e => console.log(e));
         })
-        .catch(err => console.error("Error al actualizar órdenes:", err));
+        .catch(err => console.error(err));
 }
 
 setInterval(actualizarOrdenes, 5000);
@@ -115,21 +128,7 @@ document.addEventListener("click", function(e) {
     if (e.target.classList.contains("avanzar-estado")) {
         const id = e.target.dataset.id;
         const estadoElem = document.getElementById(`estado-${id}`);
-        let nuevoEstado;
-
-        switch (estadoElem.textContent.trim()) {
-            case "pendiente":
-                nuevoEstado = "preparacion";
-                break;
-            case "preparacion":
-                nuevoEstado = "lista";
-                break;
-            case "lista":
-                nuevoEstado = "lista"; // se queda en lista
-                break;
-            default:
-                nuevoEstado = "pendiente";
-        }
+        let nuevoEstado = { pendiente: "preparacion", preparacion: "lista", lista: "lista" }[estadoElem.textContent.trim()] || "pendiente";
 
         fetch(`/actualizar_estado_cocina/${id}/`, {
             method: "POST",
@@ -141,9 +140,7 @@ document.addEventListener("click", function(e) {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.ok) {
-                estadoElem.textContent = data.estado;
-            }
+            if (data.ok) estadoElem.textContent = data.estado;
         })
         .catch(err => console.error(err));
     }
