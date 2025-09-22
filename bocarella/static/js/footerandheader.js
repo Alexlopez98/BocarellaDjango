@@ -4,114 +4,110 @@ document.addEventListener("DOMContentLoaded", () => {
     return document.querySelector('[name=csrfmiddlewaretoken]').value;
   }
 
+  // 🔹 Actualizar contador desde Django
   function updateCartCount() {
-    const cartCountEls = document.querySelectorAll("#cart-count");
-    let total = 0;
-    const cartSession = JSON.parse(localStorage.getItem("cart_session") || "{}");
-    for (let key in cartSession) total += cartSession[key];
-    cartCountEls.forEach(el => el.textContent = total);
+    fetch("/carrito/contador/")
+      .then(res => res.json())
+      .then(data => {
+        document.querySelectorAll("#cart-count").forEach(el => {
+          el.textContent = data.total || 0;
+        });
+      });
   }
 
-  function updateButtonText(btn, productId) {
-    const cartSession = JSON.parse(localStorage.getItem("cart_session") || "{}");
-    const count = cartSession[productId] || 0;
-    btn.innerHTML = count > 0 
-      ? `Agregado (${count}) ✅` 
-      : `<i class="fa-solid fa-cart-plus"></i> Agregar`;
+  // 🔹 Crear controles + / -
+  function crearControl(id, tipo, cantidad) {
+    const container = document.getElementById(`container-${tipo}-${id}`);
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-danger btn-sm btn-minus" data-id="${id}" data-tipo="${tipo}">-</button>
+        <span class="mx-2 fw-bold quantity" id="qty-${tipo}-${id}">${cantidad}</span>
+        <button class="btn btn-success btn-sm btn-plus" data-id="${id}" data-tipo="${tipo}">+</button>
+      </div>
+    `;
+
+    agregarEventos(id, tipo);
   }
 
-  // Función para agregar unidad
-  function addToCart(productId, btn) {
-    btn.disabled = true;
-    fetch(`/carrito/agregar/${productId}/`, {
-      method: "POST",
-      headers: { 'X-CSRFToken': getCSRFToken() }
-    }).then(res => {
-      if(res.ok){
-        let cartSession = JSON.parse(localStorage.getItem("cart_session") || "{}");
-        cartSession[productId] = (cartSession[productId] || 0) + 1;
-        localStorage.setItem("cart_session", JSON.stringify(cartSession));
+  // 🔹 Eventos + / -
+  function agregarEventos(id, tipo) {
+    const btnPlus = document.querySelector(`#container-${tipo}-${id} .btn-plus`);
+    const btnMinus = document.querySelector(`#container-${tipo}-${id} .btn-minus`);
+    const qtySpan = document.getElementById(`qty-${tipo}-${id}`);
 
-        updateCartCount();
-        updateButtonText(btn, productId);
+    if (btnPlus) {
+      btnPlus.addEventListener("click", () => {
+        fetch(`/carrito/agregar/${tipo}/${id}/`, {
+          method: "POST",
+          headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(res => res.json())
+        .then(data => {
+          qtySpan.textContent = data.qty;
+          updateCartCount();
+        });
+      });
+    }
 
-        const badge = document.querySelector("#cart-count");
-        if(badge){
-          badge.classList.add("animate__animated", "animate__bounce");
-          setTimeout(() => badge.classList.remove("animate__animated", "animate__bounce"), 500);
-        }
-      } else {
-        alert("Error al agregar el producto");
-      }
-    }).catch(() => alert("Error de conexión"))
-      .finally(() => btn.disabled = false);
-  }
-
-  // Función para quitar unidad
-  function removeFromCart(productId, btn) {
-    let cartSession = JSON.parse(localStorage.getItem("cart_session") || "{}");
-    if(cartSession[productId] && cartSession[productId] > 0){
-      cartSession[productId] -= 1;
-      if(cartSession[productId] === 0) delete cartSession[productId];
-      localStorage.setItem("cart_session", JSON.stringify(cartSession));
-      updateCartCount();
-      updateButtonText(btn, productId);
+    if (btnMinus) {
+      btnMinus.addEventListener("click", () => {
+        fetch(`/carrito/eliminar/${tipo}/${id}/`, {
+          method: "POST",
+          headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.qty <= 0) {
+            const container = document.getElementById(`container-${tipo}-${id}`);
+            container.innerHTML = `<button class="btn btn-add-full btn-add" data-id="${id}" data-tipo="${tipo}">Agregar</button>`;
+            agregarBotonAgregar();
+          } else {
+            qtySpan.textContent = data.qty;
+          }
+          updateCartCount();
+        });
+      });
     }
   }
 
-  // Inicializar botones
-  document.querySelectorAll(".add-to-cart").forEach(btn => {
-    const productId = btn.dataset.productId;
-    updateButtonText(btn, productId);
+  // 🔹 Botón "Agregar" inicial
+  function agregarBotonAgregar() {
+    document.querySelectorAll(".btn-add").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const tipo = btn.dataset.tipo;
 
-    // Controles + y - si existen
-    const btnAdd = btn.parentElement.querySelector(".btn-add");
-    const btnRemove = btn.parentElement.querySelector(".btn-remove");
-
-    btn.addEventListener("click", e => {
-      e.preventDefault();
-      addToCart(productId, btn);
-    });
-
-    if(btnAdd) btnAdd.addEventListener("click", () => addToCart(productId, btn));
-    if(btnRemove) btnRemove.addEventListener("click", () => removeFromCart(productId, btn));
-  });
-
-  // Sticky subheader
-  const subHeader = document.getElementById("subHeader");
-  if(subHeader) {
-    const showScroll = 155;
-    let clonedSubHeader = null;
-
-    window.addEventListener("scroll", () => {
-      const scrollTop = window.scrollY;
-      if (scrollTop > showScroll) {
-        if (!clonedSubHeader) {
-          clonedSubHeader = subHeader.cloneNode(true);
-          clonedSubHeader.id = "subHeaderClone";
-          clonedSubHeader.style.position = "fixed";
-          clonedSubHeader.style.top = `-${subHeader.offsetHeight}px`;
-          clonedSubHeader.style.width = "100%";
-          clonedSubHeader.style.zIndex = "999";
-          clonedSubHeader.style.transition = "top 0.9s ease-out";
-          document.body.appendChild(clonedSubHeader);
-          clonedSubHeader.getBoundingClientRect();
-          clonedSubHeader.style.top = "0px";
+        fetch(`/carrito/agregar/${tipo}/${id}/`, {
+          method: "POST",
+          headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(res => res.json())
+        .then(data => {
+          crearControl(id, tipo, data.qty);
           updateCartCount();
-        }
-      } else if (clonedSubHeader) {
-        clonedSubHeader.style.transition = "top 0.1s ease";
-        clonedSubHeader.style.top = `-${subHeader.offsetHeight}px`;
-        setTimeout(() => {
-          if (clonedSubHeader) {
-            clonedSubHeader.remove();
-            clonedSubHeader = null;
-          }
-        }, 500);
-      }
+        });
+      });
     });
   }
 
-  window.updateCartCount = updateCartCount;
-  updateCartCount();
+  // 🔹 Restaurar cantidades al cargar la página
+  function restaurarCantidades() {
+    fetch("/carrito/estado/")
+      .then(res => res.json())
+      .then(data => {
+        data.items.forEach(item => {
+          if(item.qty > 0){
+            crearControl(item.id, item.tipo, item.qty);
+          }
+        });
+        updateCartCount();
+      });
+  }
+
+  // Inicializar
+  agregarBotonAgregar();
+  restaurarCantidades();
+
 });

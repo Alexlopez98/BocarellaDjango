@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 import json
 
@@ -55,13 +54,12 @@ def login_view(request):
         if user:
             login(request, user)
             messages.success(request, f"Bienvenido {user.username}")
-            # Redirigir según rol
             if hasattr(user, 'perfil'):
                 if user.perfil.rol == 'empleado':
-                    return redirect('ordenes_empleados')  
+                    return redirect('ordenes_empleados')
                 elif user.perfil.rol == 'admin':
-                    return redirect('admin_dashboard')   
-            return redirect('index')  
+                    return redirect('admin_dashboard')
+            return redirect('index')
         else:
             messages.error(request, "Usuario o contraseña incorrectos")
     return render(request, 'login.html')
@@ -100,7 +98,7 @@ def cambiar_clave(request):
         form = PasswordChangeForm(user=request.user, data=request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)  # mantiene sesión activa
+            update_session_auth_hash(request, user)
             messages.success(request, '✅ Contraseña actualizada correctamente')
             return redirect('perfil')
         else:
@@ -132,14 +130,10 @@ def ver_carrito(request):
             continue
 
         producto = None
-        if tipo == "pizza":
-            producto = get_object_or_404(Pizza, id=producto_id)
-        elif tipo == "promocion":
-            producto = get_object_or_404(Promocion, id=producto_id)
-        elif tipo == "acompanamiento":
-            producto = get_object_or_404(Acompanamiento, id=producto_id)
-        elif tipo == "extra":
-            producto = get_object_or_404(Extra, id=producto_id)
+        if tipo == "pizza": producto = get_object_or_404(Pizza, id=producto_id)
+        elif tipo == "promocion": producto = get_object_or_404(Promocion, id=producto_id)
+        elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=producto_id)
+        elif tipo == "extra": producto = get_object_or_404(Extra, id=producto_id)
 
         if producto:
             subtotal = producto.precio * cantidad
@@ -153,13 +147,14 @@ def ver_carrito(request):
 
     return render(request, "carrito.html", {"carrito": {"items": items, "total": total}})
 
+@require_POST
+@csrf_exempt
 def agregar_carrito(request, tipo, id):
     carrito = request.session.get('carrito', {})
     key = f"{tipo}_{id}"
     carrito[key] = carrito.get(key, 0) + 1
     request.session['carrito'] = carrito
 
-    # Calcular subtotal
     producto = None
     if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
     elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
@@ -167,7 +162,30 @@ def agregar_carrito(request, tipo, id):
     elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
 
     subtotal = producto.precio * carrito[key]
-    return JsonResponse({"qty": carrito[key], "subtotal": subtotal})
+    return JsonResponse({"qty": carrito[key], "subtotal": subtotal, "total_items": sum(carrito.values())})
+
+@require_POST
+@csrf_exempt
+def eliminar_carrito(request, tipo, id):
+    carrito = request.session.get('carrito', {})
+    key = f"{tipo}_{id}"
+
+    if key in carrito:
+        carrito[key] -= 1
+        if carrito[key] <= 0:
+            del carrito[key]
+        request.session['carrito'] = carrito
+
+        producto = None
+        if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
+        elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
+        elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=id)
+        elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
+
+        subtotal = producto.precio * carrito.get(key, 0)
+        return JsonResponse({"qty": carrito.get(key, 0), "subtotal": subtotal, "total_items": sum(carrito.values())})
+
+    return JsonResponse({"qty": 0, "subtotal": 0, "total_items": sum(carrito.values())})
 
 @require_POST
 @csrf_exempt
@@ -202,28 +220,16 @@ def agregar_carrito_cantidad(request):
         "total_items": sum(carrito.values())
     })
 
-def eliminar_carrito(request, tipo, id):
-    carrito = request.session.get('carrito', {})
-    key = f"{tipo}_{id}"
+@require_POST
+def vaciar_carrito(request):
+    request.session['carrito'] = {}
+    messages.success(request, "✅ Carrito vaciado correctamente")
+    return redirect('carrito')
 
-    if key in carrito:
-        carrito[key] -= 1
-        if carrito[key] <= 0:
-            del carrito[key]
-        request.session['carrito'] = carrito
-
-        producto = None
-        if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
-        elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
-        elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=id)
-        elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
-
-        subtotal = producto.precio * carrito.get(key, 0)
-        return JsonResponse({"qty": carrito.get(key, 0), "subtotal": subtotal})
-    else:
-        return JsonResponse({"qty": 0, "subtotal": 0})
-
-@login_required
+# ------------------------------
+# Checkout
+# ------------------------------
+@login_required(login_url='login')
 @rol_requerido(['usuario'])
 def checkout(request):
     carrito = request.session.get('carrito', {})
@@ -242,14 +248,10 @@ def checkout(request):
             continue
 
         producto = None
-        if tipo == "pizza":
-            producto = Pizza.objects.filter(id=producto_id).first()
-        elif tipo == "promocion":
-            producto = Promocion.objects.filter(id=producto_id).first()
-        elif tipo == "acompanamiento":
-            producto = Acompanamiento.objects.filter(id=producto_id).first()
-        elif tipo == "extra":
-            producto = Extra.objects.filter(id=producto_id).first()
+        if tipo == "pizza": producto = Pizza.objects.filter(id=producto_id).first()
+        elif tipo == "promocion": producto = Promocion.objects.filter(id=producto_id).first()
+        elif tipo == "acompanamiento": producto = Acompanamiento.objects.filter(id=producto_id).first()
+        elif tipo == "extra": producto = Extra.objects.filter(id=producto_id).first()
 
         if producto:
             subtotal = producto.precio * cantidad
@@ -263,14 +265,9 @@ def checkout(request):
 
     orden.total = total
     orden.save()
-    request.session['carrito'] = {}  # Vaciar carrito
+    request.session['carrito'] = {}
     messages.success(request, "✅ Tu compra fue registrada correctamente")
     return redirect('historial')
-
-def carrito_count(request):
-    carrito = request.session.get('carrito', {})
-    total_items = sum(carrito.values())
-    return JsonResponse({'count': total_items})
 
 # ------------------------------
 # Historial de compras
@@ -282,36 +279,27 @@ def historial(request):
     return render(request, "historial.html", {"ordenes": ordenes})
 
 # ------------------------------
-# Lista de productos
+# Productos
 # ------------------------------
 def pizzas(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
-    lista_pizzas = Pizza.objects.all()
-    return render(request, "pizzas.html", {"pizzas": lista_pizzas})
+    return render(request, "pizzas.html", {"pizzas": Pizza.objects.all()})
 
 def promociones(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
-    lista_promos = Promocion.objects.all()
-    return render(request, "promociones.html", {"promociones": lista_promos})
+    return render(request, "promociones.html", {"promociones": Promocion.objects.all()})
 
 def acompanamientos(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
-    lista_acomp = Acompanamiento.objects.all()
-    return render(request, "acompanamientos.html", {"acompanamientos": lista_acomp})
+    return render(request, "acompanamientos.html", {"acompanamientos": Acompanamiento.objects.all()})
 
 def extras(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
-    lista_extras = Extra.objects.all()
-    return render(request, "extras.html", {"extras": lista_extras})
-
-def vaciar_carrito(request):
-    if 'carrito' in request.session:
-        del request.session['carrito']
-    return redirect('carrito')
+    return render(request, "extras.html", {"extras": Extra.objects.all()})
 
 # ------------------------------
 # Órdenes empleados
@@ -321,10 +309,7 @@ def vaciar_carrito(request):
 def ordenes_empleados(request):
     ordenes = Orden.objects.all().order_by('-fecha')
     total_recibido = sum(orden.total for orden in ordenes)
-    return render(request, 'ordenes.html', {
-        'ordenes': ordenes,
-        'total_recibido': total_recibido,
-    })
+    return render(request, 'ordenes.html', {'ordenes': ordenes, 'total_recibido': total_recibido})
 
 @login_required
 @rol_requerido(['empleado'])
@@ -332,10 +317,7 @@ def ordenes_empleados_json(request):
     ordenes = Orden.objects.all().order_by('-fecha')
     data = []
     for orden in ordenes:
-        items = [
-            {"nombre": item.nombre, "cantidad": item.cantidad, "subtotal": item.subtotal}
-            for item in orden.items.all()
-        ]
+        items = [{"nombre": item.nombre, "cantidad": item.cantidad, "subtotal": item.subtotal} for item in orden.items.all()]
         data.append({
             "id": orden.id,
             "usuario": orden.usuario.username,
@@ -347,18 +329,13 @@ def ordenes_empleados_json(request):
             "estado_cocina": orden.estado_cocina or "pendiente",
         })
 
-    total_recibido = sum(orden.total for orden in ordenes)
-    return JsonResponse({"ordenes": data, "total_recibido": total_recibido})
-
+    return JsonResponse({"ordenes": data, "total_recibido": sum(orden.total for orden in ordenes)})
 
 @login_required
 @rol_requerido(['empleado'])
 @require_POST
 def avanzar_estado_orden(request, orden_id):
-    try:
-        orden = Orden.objects.get(id=orden_id)
-    except Orden.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Orden no encontrada"}, status=404)
+    orden = get_object_or_404(Orden, id=orden_id)
 
     if orden.estado_cocina == "pendiente":
         orden.estado_cocina = "preparacion"
@@ -367,7 +344,6 @@ def avanzar_estado_orden(request, orden_id):
     orden.save()
 
     return JsonResponse({"ok": True, "estado": orden.estado_cocina})
-
 
 # ------------------------------
 # Error handler

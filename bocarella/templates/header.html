@@ -1,6 +1,6 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg custom-navbar">
+<nav class="navbar navbar-expand-lg custom-navbar bg-dark navbar-dark">
   <div class="container">
     <!-- Logo -->
     <a class="navbar-brand" href="{% url 'index' %}">
@@ -16,71 +16,50 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
+
         {% if user.is_authenticated %}
-            {% if user.perfil.rol == 'empleado' %}
-              <!-- Empleado: solo Perfil y Cerrar sesión -->
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'ordenes_empleados' %}">Pantalla cocina</a>
-              </li>
-              <li class="nav-item">
-                <span class="nav-link">Hola, {{ user.username }}</span>
-              </li>
-              <li class="nav-item">
-                <a class="btn btn-danger btn-sm ms-2" href="{% url 'logout' %}">Cerrar sesión</a>
-              </li>
-            {% else %}
-              <!-- Usuario normal o admin -->
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'index' %}">Inicio</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'pizzas' %}">Menú</a>
-              </li>
-              <li class="nav-item position-relative">
-                <a class="nav-link" href="{% url 'carrito' %}">
-                  🛒 Carrito
-                  <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {% if request.session.carrito %}
-                      {% with 0 as total_cantidad %}
-                        {% for key, cantidad in request.session.carrito.items %}
-                          {% with total_cantidad|add:cantidad as total_cantidad %}{% endwith %}
-                        {% endfor %}
-                        {{ total_cantidad }}
-                      {% endwith %}
-                    {% else %}
-                      0
-                    {% endif %}
-                  </span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
-              </li>
-              <li class="nav-item">
-                <span class="nav-link">Hola, {{ user.username }}</span>
-              </li>
-              <li class="nav-item">
-                <a class="btn btn-danger btn-sm ms-2" href="{% url 'logout' %}">Cerrar sesión</a>
-              </li>
-            {% endif %}
+          {% if user.perfil.rol == 'empleado' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'ordenes_empleados' %}">Pantalla cocina</a>
+            </li>
+            <li class="nav-item">
+              <span class="nav-link">Hola, {{ user.username }}</span>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-danger btn-sm ms-2" href="{% url 'logout' %}">Cerrar sesión</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'index' %}">Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'pizzas' %}">Menú</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'carrito' %}">🛒 Carrito</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'perfil' %}">👤 Mi Perfil</a>
+            </li>
+            <li class="nav-item">
+              <span class="nav-link">Hola, {{ user.username }}</span>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-danger btn-sm ms-2" href="{% url 'logout' %}">Cerrar sesión</a>
+            </li>
+          {% endif %}
         {% else %}
-          <!-- Invitado -->
           <li class="nav-item">
             <a class="nav-link" href="{% url 'index' %}">Inicio</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'pizzas' %}">Menú</a>
           </li>
-          <li class="nav-item position-relative">
-            <a class="nav-link" href="{% url 'carrito' %}">
-              🛒 Carrito
-              <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                0
-              </span>
-            </a>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'carrito' %}">🛒 Carrito</a>
           </li>
           <li class="nav-item">
             <a class="btn btn-outline-light ms-2" href="{% url 'login' %}">Ingresar</a>
@@ -89,9 +68,11 @@
             <a class="btn btn-warning ms-2" href="{% url 'registro' %}">Registrarse</a>
           </li>
         {% endif %}
+
       </ul>
     </div>
   </div>
 </nav>
 
+<!-- CSS -->
 <link rel="stylesheet" href="{% static 'css/headerandfooter.css' %}">
