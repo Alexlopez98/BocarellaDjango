@@ -9,6 +9,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseForbidden
 import json
+from .decorators import rol_requerido
 
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
@@ -58,10 +59,10 @@ def login_view(request):
             # Redirigir según rol
             if hasattr(user, 'perfil'):
                 if user.perfil.rol == 'empleado':
-                    return redirect('ordenes_empleados')  # Redirige a la vista de órdenes
+                    return redirect('ordenes_empleados')  
                 elif user.perfil.rol == 'admin':
-                    return redirect('admin_dashboard')   # Admin dashboard
-            return redirect('index')  # Usuario normal
+                    return redirect('admin_dashboard')   
+            return redirect('index')  
         else:
             messages.error(request, "Usuario o contraseña incorrectos")
     return render(request, 'login.html')
@@ -112,11 +113,10 @@ def cambiar_clave(request):
 # Dashboard de administrador
 # ------------------------------
 @login_required
+@rol_requerido(['admin'])
 def admin_dashboard(request):
-    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'admin':
-        messages.warning(request, "No tienes permisos de administrador")
-        return redirect('index')
     return render(request, 'admin_dashboard.html')
+
 
 # ------------------------------
 # CARRITO
@@ -231,6 +231,7 @@ def eliminar_carrito(request, tipo, id):
         return JsonResponse({"qty": 0, "subtotal": 0})
 
 @login_required
+@rol_requerido(['usuario'])
 def checkout(request):
     carrito = request.session.get('carrito', {})
     if not carrito:
@@ -282,6 +283,7 @@ def carrito_count(request):
 # Historial de compras
 # ------------------------------
 @login_required
+@rol_requerido(['usuario'])
 def historial(request):
     ordenes = Orden.objects.filter(usuario=request.user).order_by('-fecha')
     return render(request, "historial.html", {"ordenes": ordenes})
@@ -323,16 +325,20 @@ def vaciar_carrito(request):
 
 
 @login_required
+@rol_requerido(['empleado'])
 def ordenes_empleados(request):
-    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
-        return HttpResponseForbidden("No tienes permiso para ver esta página.")
-
     ordenes = Orden.objects.all().order_by('-fecha')
-
     total_recibido = sum(orden.total for orden in ordenes)
 
-    context = {
+    return render(request, 'ordenes.html', {
         'ordenes': ordenes,
         'total_recibido': total_recibido,
-    }
-    return render(request, 'ordenes.html', context)
+    })
+
+
+
+
+
+
+def error_403(request, exception=None):
+    return render(request, '403.html', status=403)

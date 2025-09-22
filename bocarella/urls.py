@@ -29,3 +29,4 @@ urlpatterns = [
     path('ordenes/', views.ordenes_empleados, name='ordenes_empleados'),
 
 ]
+handler403 = 'mi_app.views.error_403'
