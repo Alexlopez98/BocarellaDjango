@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+from django.http import HttpResponseForbidden
 import json
 
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
@@ -54,9 +55,13 @@ def login_view(request):
         if user:
             login(request, user)
             messages.success(request, f"Bienvenido {user.username}")
-            if hasattr(user, 'perfil') and user.perfil.rol == 'admin':
-                return redirect('admin_dashboard')
-            return redirect('index')
+            # Redirigir según rol
+            if hasattr(user, 'perfil'):
+                if user.perfil.rol == 'empleado':
+                    return redirect('ordenes_empleados')  # Redirige a la vista de órdenes
+                elif user.perfil.rol == 'admin':
+                    return redirect('admin_dashboard')   # Admin dashboard
+            return redirect('index')  # Usuario normal
         else:
             messages.error(request, "Usuario o contraseña incorrectos")
     return render(request, 'login.html')
@@ -313,3 +318,21 @@ def vaciar_carrito(request):
     if 'carrito' in request.session:
         del request.session['carrito']
     return redirect('carrito')  # redirige a la página del carrito
+
+
+
+
+@login_required
+def ordenes_empleados(request):
+    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
+        return HttpResponseForbidden("No tienes permiso para ver esta página.")
+
+    ordenes = Orden.objects.all().order_by('-fecha')
+
+    total_recibido = sum(orden.total for orden in ordenes)
+
+    context = {
+        'ordenes': ordenes,
+        'total_recibido': total_recibido,
+    }
+    return render(request, 'ordenes.html', context)
