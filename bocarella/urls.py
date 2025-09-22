@@ -17,11 +17,13 @@ urlpatterns = [
     path("checkout/", views.checkout, name="checkout"),
     path("historial/", views.historial, name="historial"),
     path('carrito/count/', views.carrito_count, name='carrito_count'),
-
+    path('vaciar-carrito/', views.vaciar_carrito, name='vaciar_carrito'),
 
     # Productos
     path("pizzas/", views.pizzas, name="pizzas"),
     path("promociones/", views.promociones, name="promociones"),
     path("acompanamientos/", views.acompanamientos, name="acompanamientos"),
     path("extras/", views.extras, name="extras"),
+    path("carrito/agregar-cantidad/", views.agregar_carrito_cantidad, name="agregar_carrito_cantidad"),
+
 ]

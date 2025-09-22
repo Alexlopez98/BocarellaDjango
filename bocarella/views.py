@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+import json
 
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
@@ -148,8 +150,7 @@ def ver_carrito(request):
 
     return render(request, "carrito.html", {"carrito": {"items": items, "total": total}})
 
-
-# ----------------- AGREGAR PRODUCTO -----------------
+# ----------------- AGREGAR PRODUCTO (de a 1) -----------------
 def agregar_carrito(request, tipo, id):
     carrito = request.session.get('carrito', {})
     key = f"{tipo}_{id}"
@@ -166,6 +167,40 @@ def agregar_carrito(request, tipo, id):
     subtotal = producto.precio * carrito[key]
     return JsonResponse({"qty": carrito[key], "subtotal": subtotal})
 
+# ----------------- AGREGAR PRODUCTO CON CANTIDAD (Finalizar) -----------------
+@require_POST
+@csrf_exempt  # ⚠️ si manejas CSRF con cookie, puedes quitar esto
+def agregar_carrito_cantidad(request):
+    try:
+        data = json.loads(request.body)
+        tipo = data.get("tipo")
+        id = int(data.get("id"))
+        cantidad = int(data.get("cantidad", 1))
+    except (ValueError, KeyError, json.JSONDecodeError):
+        return JsonResponse({"error": "Datos inválidos"}, status=400)
+
+    if cantidad <= 0:
+        return JsonResponse({"error": "Cantidad debe ser mayor que cero"}, status=400)
+
+    carrito = request.session.get("carrito", {})
+    key = f"{tipo}_{id}"
+    carrito[key] = carrito.get(key, 0) + cantidad
+    request.session["carrito"] = carrito
+
+    # Buscar producto para calcular subtotal
+    producto = None
+    if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
+    elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
+    elif tipo == "acompanamiento": producto = get_object_or_404(Acompanamiento, id=id)
+    elif tipo == "extra": producto = get_object_or_404(Extra, id=id)
+
+    subtotal = producto.precio * carrito[key]
+
+    return JsonResponse({
+        "qty": carrito[key],
+        "subtotal": subtotal,
+        "total_items": sum(carrito.values())
+    })
 
 # ----------------- ELIMINAR PRODUCTO -----------------
 def eliminar_carrito(request, tipo, id):
@@ -190,8 +225,6 @@ def eliminar_carrito(request, tipo, id):
     else:
         return JsonResponse({"qty": 0, "subtotal": 0})
 
-
-
 @login_required
 def checkout(request):
     carrito = request.session.get('carrito', {})
@@ -203,12 +236,11 @@ def checkout(request):
     orden = Orden.objects.create(usuario=request.user, total=0)
 
     for pid, cantidad in carrito.items():
-        # Separar tipo y id
         try:
             tipo, producto_id = pid.split("_")
             producto_id = int(producto_id)
         except ValueError:
-            continue  # Si el formato es incorrecto, saltamos
+            continue
 
         producto = None
         if tipo == "pizza":
@@ -238,10 +270,9 @@ def checkout(request):
 
 def carrito_count(request):
     carrito = request.session.get('carrito', {})
-    total_items = sum(carrito.values())  # suma de cantidades de todos los productos
+    total_items = sum(carrito.values())
     return JsonResponse({'count': total_items})
 
-    
 # ------------------------------
 # Historial de compras
 # ------------------------------
@@ -259,13 +290,11 @@ def pizzas(request):
     lista_pizzas = Pizza.objects.all()
     return render(request, "pizzas.html", {"pizzas": lista_pizzas})
 
-
 def promociones(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
     lista_promos = Promocion.objects.all()
     return render(request, "promociones.html", {"promociones": lista_promos})
-
 
 def acompanamientos(request):
     if "carrito" not in request.session:
@@ -273,9 +302,14 @@ def acompanamientos(request):
     lista_acomp = Acompanamiento.objects.all()
     return render(request, "acompanamientos.html", {"acompanamientos": lista_acomp})
 
-
 def extras(request):
     if "carrito" not in request.session:
         request.session["carrito"] = {}
     lista_extras = Extra.objects.all()
     return render(request, "extras.html", {"extras": lista_extras})
+
+
+def vaciar_carrito(request):
+    if 'carrito' in request.session:
+        del request.session['carrito']
+    return redirect('carrito')  # redirige a la página del carrito

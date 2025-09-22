@@ -31,17 +31,24 @@
     <div class="row">
       {% for pizza in pizzas %}
         <div class="col-md-4 mb-3">
-          <div class="card h-100 shadow-sm">
+          <div class="card h-100 shadow-sm" id="producto-{{ pizza.id }}">
             <img src="{{ pizza.imagen.url }}" class="card-img-top" alt="{{ pizza.nombre }}">
-            <div class="card-body">
+            <div class="card-body text-center">
               <h5 class="card-title">{{ pizza.nombre }}</h5>
               <p class="card-text">{{ pizza.descripcion }}</p>
               <p class="fw-bold">${{ pizza.precio }}</p>
-              <div id="container-pizza-{{ pizza.id }}">
-                <button class="btn btn-add-full btn-add" data-id="{{ pizza.id }}" data-tipo="pizza">
-                  <i class="fa-solid fa-cart-plus"></i> Agregar
-                </button>
+
+              <!-- Controles cantidad -->
+              <div class="d-flex justify-content-center align-items-center mb-2">
+                <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ pizza.id }}, -1)">-</button>
+                <span id="cantidad-{{ pizza.id }}" class="mx-2">0</span>
+                <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ pizza.id }}, 1)">+</button>
               </div>
+
+              <!-- Botón Finalizar -->
+              <button class="btn btn-add-full" onclick="finalizarProducto({{ pizza.id }}, 'pizza', '{{ pizza.nombre }}', {{ pizza.precio }})">
+                ✅ Finalizar
+              </button>
             </div>
           </div>
         </div>
@@ -54,5 +61,67 @@
   {% include 'footer.html' %}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/contador.js' %}"></script>
+
+  <script>
+    function cambiarCantidad(id, cambio) {
+      let span = document.getElementById(`cantidad-${id}`);
+      let cantidad = parseInt(span.innerText) + cambio;
+      if (cantidad < 0) cantidad = 0;
+      span.innerText = cantidad;
+    }
+
+    function finalizarProducto(id, tipo, nombre, precio) {
+      let cantidad = parseInt(document.getElementById(`cantidad-${id}`).innerText);
+
+      if (cantidad === 0) {
+        alert("No seleccionaste ninguna unidad.");
+        return;
+      }
+
+      fetch("/carrito/agregar-cantidad/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+          id: id,
+          tipo: tipo,
+          cantidad: cantidad
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert("Error: " + data.error);
+          return;
+        }
+        alert(`Agregaste ${cantidad} ${nombre}(s) al carrito.`);
+
+        // Deshabilitar botones +/- de ese producto
+        document.querySelectorAll(`#producto-${id} button`).forEach(btn => {
+          if (btn.innerText === "+" || btn.innerText === "-") {
+            btn.disabled = true;
+          }
+        });
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
 </body>
 </html>
