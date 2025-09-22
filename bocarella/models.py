@@ -1,5 +1,7 @@
+
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 class Perfil(models.Model):
     ROLES = (
@@ -64,11 +66,55 @@ class Orden(models.Model):
         null=True,
         blank=True,
         related_name='ordenes_recibidas',
-        limit_choices_to={'perfil__rol': 'empleado'}  
+        limit_choices_to={'perfil__rol': 'empleado'}
+    )
+
+    # 🔹 NUEVO: Estado interno para cocina
+    ESTADOS_COCINA = [
+        ('pendiente', 'Pendiente'),        # Orden recibida pero no comenzada
+        ('preparacion', 'En preparación'), # Cocina trabajando
+        ('lista', 'Lista para salida'),    # Preparación terminada
+    ]
+    estado_cocina = models.CharField(
+        max_length=20,
+        choices=ESTADOS_COCINA,
+        default='pendiente'
     )
 
     def __str__(self):
-        return f"Orden #{self.id} de {self.usuario.username}"
+        return f"Orden #{self.id} de {self.usuario.username} - {self.get_estado_cocina_display()}"
+
+    def tiempo_transcurrido_ms(self):
+        """Retorna milisegundos desde la creación"""
+        delta = timezone.now() - self.fecha
+        return int(delta.total_seconds() * 1000)
+
+    def tiempo_legible(self):
+        """Retorna tiempo en formato 1d 2h 35m 10s"""
+        delta = timezone.now() - self.fecha
+        total_segundos = int(delta.total_seconds())
+
+        dias = total_segundos // 86400
+        total_segundos %= 86400
+
+        horas = total_segundos // 3600
+        total_segundos %= 3600
+
+        minutos = total_segundos // 60
+        segundos = total_segundos % 60
+
+        partes = []
+        if dias > 0:
+            partes.append(f"{dias}d")
+        if horas > 0:
+            partes.append(f"{horas}h")
+        if minutos > 0:
+            partes.append(f"{minutos}m")
+        if segundos > 0 or not partes:
+            partes.append(f"{segundos}s")
+
+        return " ".join(partes)
+
 
 
 class OrdenItem(models.Model):

@@ -9,6 +9,8 @@ urlpatterns = [
     path("perfil/", views.perfil_view, name="perfil"),
     path('perfil/cambiar_clave/', views.cambiar_clave, name='cambiar_clave'),
     path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
+    path('ordenes/json/', views.ordenes_empleados_json, name='ordenes_empleados_json'),
+    path('actualizar_estado_cocina/<int:orden_id>/', views.avanzar_estado_orden, name='actualizar_estado_cocina'),
 
    # Carrito
     path("carrito/", views.ver_carrito, name="carrito"),

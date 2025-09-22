@@ -19,7 +19,8 @@
         <div class="card mb-4 shadow-sm">
           <div class="card-header bg-light">
             <strong>Fecha:</strong> {{ orden.fecha|date:"d/m/Y H:i" }} |
-            <strong>Total:</strong> ${{ orden.total }}
+            <strong>Total:</strong> ${{ orden.total }} |
+            <strong>Estado:</strong> {{ orden.get_estado_cocina_display }}
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">

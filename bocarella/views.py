@@ -2,15 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import HttpResponseForbidden
 import json
-from .decorators import rol_requerido
 
+from .decorators import rol_requerido
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
 
@@ -117,9 +116,8 @@ def cambiar_clave(request):
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
-
 # ------------------------------
-# CARRITO
+# Carrito
 # ------------------------------
 def ver_carrito(request):
     carrito = request.session.get('carrito', {})
@@ -155,7 +153,6 @@ def ver_carrito(request):
 
     return render(request, "carrito.html", {"carrito": {"items": items, "total": total}})
 
-# ----------------- AGREGAR PRODUCTO (de a 1) -----------------
 def agregar_carrito(request, tipo, id):
     carrito = request.session.get('carrito', {})
     key = f"{tipo}_{id}"
@@ -172,9 +169,8 @@ def agregar_carrito(request, tipo, id):
     subtotal = producto.precio * carrito[key]
     return JsonResponse({"qty": carrito[key], "subtotal": subtotal})
 
-# ----------------- AGREGAR PRODUCTO CON CANTIDAD (Finalizar) -----------------
 @require_POST
-@csrf_exempt  # ⚠️ si manejas CSRF con cookie, puedes quitar esto
+@csrf_exempt
 def agregar_carrito_cantidad(request):
     try:
         data = json.loads(request.body)
@@ -192,7 +188,6 @@ def agregar_carrito_cantidad(request):
     carrito[key] = carrito.get(key, 0) + cantidad
     request.session["carrito"] = carrito
 
-    # Buscar producto para calcular subtotal
     producto = None
     if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
     elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
@@ -207,7 +202,6 @@ def agregar_carrito_cantidad(request):
         "total_items": sum(carrito.values())
     })
 
-# ----------------- ELIMINAR PRODUCTO -----------------
 def eliminar_carrito(request, tipo, id):
     carrito = request.session.get('carrito', {})
     key = f"{tipo}_{id}"
@@ -218,7 +212,6 @@ def eliminar_carrito(request, tipo, id):
             del carrito[key]
         request.session['carrito'] = carrito
 
-        # Calcular subtotal
         producto = None
         if tipo == "pizza": producto = get_object_or_404(Pizza, id=id)
         elif tipo == "promocion": producto = get_object_or_404(Promocion, id=id)
@@ -289,7 +282,7 @@ def historial(request):
     return render(request, "historial.html", {"ordenes": ordenes})
 
 # ------------------------------
-# LISTA DE PRODUCTOS
+# Lista de productos
 # ------------------------------
 def pizzas(request):
     if "carrito" not in request.session:
@@ -315,30 +308,71 @@ def extras(request):
     lista_extras = Extra.objects.all()
     return render(request, "extras.html", {"extras": lista_extras})
 
-
 def vaciar_carrito(request):
     if 'carrito' in request.session:
         del request.session['carrito']
-    return redirect('carrito')  # redirige a la página del carrito
+    return redirect('carrito')
 
-
-
-
+# ------------------------------
+# Órdenes empleados
+# ------------------------------
 @login_required
 @rol_requerido(['empleado'])
 def ordenes_empleados(request):
     ordenes = Orden.objects.all().order_by('-fecha')
     total_recibido = sum(orden.total for orden in ordenes)
-
     return render(request, 'ordenes.html', {
         'ordenes': ordenes,
         'total_recibido': total_recibido,
     })
 
+@login_required
+def ordenes_empleados_json(request):
+    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
+        return HttpResponseForbidden("No tienes permiso para ver esta página.")
+    
+    ordenes = Orden.objects.all().order_by('-fecha')
+    data = []
+    for orden in ordenes:
+        items = [
+            {"nombre": item.nombre, "cantidad": item.cantidad, "subtotal": item.subtotal}
+            for item in orden.items.all()
+        ]
+        data.append({
+            "id": orden.id,
+            "usuario": orden.usuario.username,
+            "timestamp": orden.tiempo_transcurrido_ms(),
+            "tiempo_legible": orden.tiempo_legible(),
+            "total": orden.total,
+            "items": items,
+            "recibido_por": orden.recibido_por.username if orden.recibido_por else "Sin asignar",
+            "estado_cocina": orden.estado_cocina or "pendiente",
+        })
 
+    total_recibido = sum(orden.total for orden in ordenes)
+    return JsonResponse({"ordenes": data, "total_recibido": total_recibido})
 
+@login_required
+@require_POST
+def avanzar_estado_orden(request, orden_id):
+    if not hasattr(request.user, 'perfil') or request.user.perfil.rol != 'empleado':
+        return HttpResponseForbidden("No tienes permiso.")
 
+    try:
+        orden = Orden.objects.get(id=orden_id)
+    except Orden.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Orden no encontrada"}, status=404)
 
+    if orden.estado_cocina == "pendiente":
+        orden.estado_cocina = "preparacion"
+    elif orden.estado_cocina == "preparacion":
+        orden.estado_cocina = "lista"
+    orden.save()
 
+    return JsonResponse({"ok": True, "estado": orden.estado_cocina})
+
+# ------------------------------
+# Error handler
+# ------------------------------
 def error_403(request, exception=None):
     return render(request, '403.html', status=403)
