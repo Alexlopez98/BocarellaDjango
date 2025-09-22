@@ -314,7 +314,12 @@ def ordenes_empleados(request):
 @login_required
 @rol_requerido(['empleado'])
 def ordenes_empleados_json(request):
+    estado_filtro = request.GET.get('estado', 'todas')  # recibe el filtro desde JS
+
     ordenes = Orden.objects.all().order_by('-fecha')
+    if estado_filtro != 'todas':
+        ordenes = ordenes.filter(estado_cocina=estado_filtro)
+
     data = []
     for orden in ordenes:
         items = [{"nombre": item.nombre, "cantidad": item.cantidad, "subtotal": item.subtotal} for item in orden.items.all()]
@@ -337,16 +342,61 @@ def ordenes_empleados_json(request):
 def avanzar_estado_orden(request, orden_id):
     orden = get_object_or_404(Orden, id=orden_id)
 
-    if orden.estado_cocina == "pendiente":
-        orden.estado_cocina = "preparacion"
-    elif orden.estado_cocina == "preparacion":
-        orden.estado_cocina = "lista"
-    orden.save()
+    try:
+        data = json.loads(request.body)
+        nuevo_estado = data.get('estado')
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
 
-    return JsonResponse({"ok": True, "estado": orden.estado_cocina})
+    if nuevo_estado in ["pendiente", "preparacion", "lista"]:
+        orden.estado_cocina = nuevo_estado
+        orden.save()
+        return JsonResponse({"ok": True, "estado": orden.estado_cocina})
+    else:
+        return JsonResponse({"ok": False, "error": "Estado inválido"}, status=400)
 
 # ------------------------------
 # Error handler
 # ------------------------------
 def error_403(request, exception=None):
     return render(request, '403.html', status=403)
+
+
+from django.db.models import Sum
+from django.utils.timezone import now, timedelta
+
+@login_required
+@rol_requerido(['empleado'])
+def historial_empleado(request):
+    periodo = request.GET.get("periodo", "hoy")  # valor por defecto: hoy
+    fecha_inicio = None
+    fecha_fin = now()
+
+    if periodo == "hoy":
+        fecha_inicio = fecha_fin.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif periodo == "semana":
+        fecha_inicio = fecha_fin - timedelta(days=fecha_fin.weekday())
+        fecha_inicio = fecha_inicio.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif periodo == "mes":
+        fecha_inicio = fecha_fin.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif periodo == "año":
+        fecha_inicio = fecha_fin.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif periodo == "personalizado":
+        inicio_str = request.GET.get("inicio")
+        fin_str = request.GET.get("fin")
+        if inicio_str and fin_str:
+            from datetime import datetime
+            fecha_inicio = datetime.strptime(inicio_str, "%Y-%m-%d")
+            fecha_fin = datetime.strptime(fin_str, "%Y-%m-%d")
+
+    ordenes = Orden.objects.all().order_by('-fecha')
+    if fecha_inicio:
+        ordenes = ordenes.filter(fecha__range=(fecha_inicio, fecha_fin))
+
+    total_ganado = ordenes.aggregate(total=Sum('total'))['total'] or 0
+
+    return render(request, "historialempleados.html", {
+        "ordenes": ordenes,
+        "total_ganado": total_ganado,
+        "periodo_actual": periodo
+    })

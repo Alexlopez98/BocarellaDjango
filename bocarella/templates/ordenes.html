@@ -16,8 +16,14 @@
 <main class="container my-4">
   <h1 class="text-center mb-4">📋 Órdenes Recibidas</h1>
 
+  <!-- Controles de audio y filtro -->
   <div class="text-center mb-3">
-    <button id="toggleAudioBtn" class="btn btn-success">🔔 Sonido Activado</button>
+    <button id="toggleAudioBtn" class="btn btn-success me-2">🔔 Sonido Activado</button>
+
+    <button class="btn btn-secondary filtro-estado" data-estado="todas">Todas</button>
+    <button class="btn btn-warning filtro-estado" data-estado="pendiente">Pendientes</button>
+    <button class="btn btn-primary filtro-estado" data-estado="preparacion">En Preparación</button>
+    <button class="btn btn-success filtro-estado" data-estado="lista">Listas</button>
   </div>
 
   <!-- Pestañas -->
@@ -55,7 +61,6 @@
       {% include 'historialempleados.html' %}
     </div>
   </div>
-
 </main>
 
 {% include 'footer.html' %}
@@ -66,17 +71,27 @@
 let audio = new Audio("{% static 'sounds/bell.mp3' %}");
 let audioActivado = true;
 let ordenTimestamps = {};
+let estadoFiltro = "todas";
 
-const toggleBtn = document.getElementById("toggleAudioBtn");
-toggleBtn.addEventListener("click", () => {
+// Toggle audio
+document.getElementById("toggleAudioBtn").addEventListener("click", () => {
     audioActivado = !audioActivado;
-    toggleBtn.textContent = audioActivado ? "🔔 Sonido Activado" : "🔕 Sonido Bloqueado";
-    toggleBtn.classList.toggle("btn-success", audioActivado);
-    toggleBtn.classList.toggle("btn-danger", !audioActivado);
+    const btn = document.getElementById("toggleAudioBtn");
+    btn.textContent = audioActivado ? "🔔 Sonido Activado" : "🔕 Sonido Bloqueado";
+    btn.classList.toggle("btn-success", audioActivado);
+    btn.classList.toggle("btn-danger", !audioActivado);
+});
+
+// Cambiar filtro
+document.querySelectorAll(".filtro-estado").forEach(btn => {
+    btn.addEventListener("click", () => {
+        estadoFiltro = btn.dataset.estado;
+        actualizarOrdenes();
+    });
 });
 
 function actualizarOrdenes() {
-    fetch("{% url 'ordenes_empleados_json' %}")
+    fetch("{% url 'ordenes_empleados_json' %}?estado=" + estadoFiltro)
         .then(res => res.json())
         .then(data => {
             const tbody = document.querySelector("#ordenes tbody");
@@ -120,9 +135,6 @@ function actualizarOrdenes() {
         .catch(err => console.error(err));
 }
 
-setInterval(actualizarOrdenes, 5000);
-actualizarOrdenes();
-
 // Avanzar estado
 document.addEventListener("click", function(e) {
     if (e.target.classList.contains("avanzar-estado")) {
@@ -145,6 +157,9 @@ document.addEventListener("click", function(e) {
         .catch(err => console.error(err));
     }
 });
+
+setInterval(actualizarOrdenes, 1000);
+actualizarOrdenes();
 </script>
 
 </body>
