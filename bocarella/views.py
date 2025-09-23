@@ -278,6 +278,7 @@ def checkout_pago(request):
         messages.warning(request, "⚠️ Tu carrito está vacío")
         return redirect('carrito')
 
+    # Calcular total
     total = 0
     for pid, cantidad in carrito.items():
         try:
@@ -296,7 +297,12 @@ def checkout_pago(request):
             total += producto.precio * cantidad
 
     if request.method == 'POST':
-        # Simula pago exitoso y crea la orden
+        numero_tarjeta = request.POST.get('numero_tarjeta', '')
+        if not validar_tarjeta_luhn(numero_tarjeta):
+            messages.error(request, "❌ Número de tarjeta inválido")
+            return render(request, 'checkout_pago.html', {'total': total})
+
+        # Crear orden
         orden = Orden.objects.create(usuario=request.user, total=0)
         total_orden = 0
 
@@ -326,10 +332,34 @@ def checkout_pago(request):
         orden.total = total_orden
         orden.save()
         request.session['carrito'] = {}  # vaciar carrito
-        messages.success(request, "✅ Tu compra fue registrada correctamente")
+
+        # Renderizar pantalla de pago exitoso
         return render(request, 'pagoexitoso.html', {'orden': orden})
 
     return render(request, 'checkout_pago.html', {'total': total})
+
+
+def validar_tarjeta_luhn(numero):
+    """
+    Valida un número de tarjeta usando el algoritmo de Luhn.
+    Retorna True si es válido, False si no.
+    """
+    numero = numero.replace(" ", "")  # eliminar espacios
+    if not numero.isdigit():
+        return False
+
+    total = 0
+    reverse_digits = numero[::-1]
+
+    for i, d in enumerate(reverse_digits):
+        n = int(d)
+        if i % 2 == 1:  # duplicar cada segundo dígito
+            n *= 2
+            if n > 9:
+                n -= 9
+        total += n
+
+    return total % 10 == 0
 
 
 

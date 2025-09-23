@@ -16,6 +16,17 @@
   <main class="container my-5">
     <h1 class="text-center mb-4">💳 Simulación de Pago</h1>
 
+    {% if messages %}
+      <div class="mx-auto" style="max-width: 400px;">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <form method="post" class="mx-auto" style="max-width: 400px;">
       {% csrf_token %}
       <div class="mb-3">
@@ -24,7 +35,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label">Número de tarjeta</label>
-        <input type="text" class="form-control" maxlength="16" required>
+        <input type="text" class="form-control" name="numero_tarjeta" maxlength="16" required>
       </div>
       <div class="mb-3">
         <label class="form-label">CVV</label>
