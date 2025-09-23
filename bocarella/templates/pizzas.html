@@ -26,37 +26,37 @@
     </div>
   </nav>
 
-  <main class="container my-4">
-    <h1 class="text-center mb-4">🍕 Pizzas</h1>
-    <div class="row">
-      {% for pizza in pizzas %}
-        <div class="col-md-4 mb-3">
-          <div class="card h-100 shadow-sm" id="producto-{{ pizza.id }}">
-            <img src="{{ pizza.imagen.url }}" class="card-img-top" alt="{{ pizza.nombre }}">
-            <div class="card-body text-center">
-              <h5 class="card-title">{{ pizza.nombre }}</h5>
-              <p class="card-text">{{ pizza.descripcion }}</p>
-              <p class="fw-bold">${{ pizza.precio }}</p>
+  <div class="main-content">
+    <main class="container my-4">
+      <h1 class="text-center mb-4">🍕 Pizzas</h1>
+      <div class="row">
+        {% for pizza in pizzas %}
+          <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm" id="producto-{{ pizza.id }}">
+              <img src="{{ pizza.imagen.url }}" class="card-img-top" alt="{{ pizza.nombre }}">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ pizza.nombre }}</h5>
+                <p class="card-text">{{ pizza.descripcion }}</p>
+                <p class="fw-bold">${{ pizza.precio }}</p>
 
-              <!-- Controles cantidad -->
-              <div class="d-flex justify-content-center align-items-center mb-2">
-                <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ pizza.id }}, -1)">-</button>
-                <span id="cantidad-{{ pizza.id }}" class="mx-2">0</span>
-                <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ pizza.id }}, 1)">+</button>
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                  <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ pizza.id }}, -1)">-</button>
+                  <span id="cantidad-{{ pizza.id }}" class="mx-2">0</span>
+                  <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ pizza.id }}, 1)">+</button>
+                </div>
+
+                <button class="btn btn-add-full" onclick="finalizarProducto({{ pizza.id }}, 'pizza', '{{ pizza.nombre }}', {{ pizza.precio }})">
+                   Finalizar
+                </button>
               </div>
-
-              <!-- Botón Finalizar -->
-              <button class="btn btn-add-full" onclick="finalizarProducto({{ pizza.id }}, 'pizza', '{{ pizza.nombre }}', {{ pizza.precio }})">
-                 Finalizar
-              </button>
             </div>
           </div>
-        </div>
-      {% empty %}
-        <p class="text-center">No hay pizzas disponibles 🍕</p>
-      {% endfor %}
-    </div>
-  </main>
+        {% empty %}
+          <p class="text-center">No hay pizzas disponibles 🍕</p>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
 
   {% include 'footer.html' %}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -97,7 +97,6 @@
         }
         alert(`Agregaste ${cantidad} ${nombre}(s) al carrito.`);
 
-        // Reset cantidad a 0 después de agregar
         document.getElementById(`cantidad-${id}`).innerText = 0;
       })
       .catch(error => console.error("Error:", error));

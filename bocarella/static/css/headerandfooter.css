@@ -1,4 +1,18 @@
-/* ===== Header ===== */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
 .headerID {
   background-color: #2E7D32 !important;
   color: white;
@@ -11,20 +25,26 @@
   transition: top 0.1s ease;
 }
 
+.navbar {
+  background-color: rgb(17, 88, 22) !important;
+}
+
+.navbar .nav-link,
 .headerID .nav-link,
 .subheader .nav-link {
-  color: #ffffff !important;
+  color: #fff !important;
   font-weight: 500;
 }
 
+.navbar .nav-link:hover,
 .headerID .nav-link:hover,
 .subheader .nav-link:hover {
-  color: #c0ffc0 !important;
-  text-decoration: underline;
+  color: #dfc896 !important;
+  text-decoration: none;
+  transform: scale(1.1);
+  font-weight: bold;
 }
 
-
-/* Dropdown Bootstrap */
 .navbar-nav .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -37,18 +57,28 @@
   position: relative;
 }
 
-/* Responsive */
-@media (max-width: 992px) {
-  #subNavContent .navbar-nav {
-    flex-direction: column;
-    text-align: center;
-  }
-  #subNavContent .nav-item {
-    margin-bottom: 10px;
-  }
+.custom-navbar .container {
+  display: flex;
+  align-items: center;          
+  justify-content: space-between; 
 }
 
-/* ===== Footer ===== */
+.custom-navbar .navbar-nav {
+  display: flex;
+  align-items: center;     
+  gap: 15px;     
+}
+
+.custom-navbar .nav-item .nav-link,
+.custom-navbar .btn {
+  display: flex;
+  align-items: center;     
+}
+
+.custom-navbar .btn.btn-danger {
+  margin-left: auto; 
+}
+
 .footer1id {
   background-color: rgb(227, 239, 179);
   color: #333;
@@ -67,7 +97,6 @@
   text-decoration: underline;
 }
 
-/* ===== Carrito ===== */
 .carrito-css {
   color: #ffffff;
   text-decoration: none;
@@ -79,15 +108,12 @@
   border-radius: 20%;
 }
 
-/* ===== Sobrescribir Bootstrap navbar ===== */
-.navbar {
-  background-color: rgb(17, 88, 22) !important;
-}
-
-.navbar .nav-link {
-  color: #fff !important;
-}
-
-.navbar .nav-link:hover {
-  color: #c0ffc0 !important;
+@media (max-width: 992px) {
+  #subNavContent .navbar-nav {
+    flex-direction: column;
+    text-align: center;
+  }
+  #subNavContent .nav-item {
+    margin-bottom: 10px;
+  }
 }

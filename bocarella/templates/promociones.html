@@ -26,39 +26,43 @@
     </div>
   </nav>
 
-  <main class="container my-4">
-    <h1 class="text-center mb-4">🍕 Promociones</h1>
-    <div class="row">
-      {% for promo in promociones %}
-        <div class="col-md-4 mb-3">
-          <div class="card h-100 shadow-sm" id="producto-{{ promo.id }}">
-            <img src="{{ promo.imagen.url }}" class="card-img-top" alt="{{ promo.titulo }}">
-            <div class="card-body text-center">
-              <h5 class="card-title">{{ promo.titulo }}</h5>
-              <p class="card-text">{{ promo.descripcion }}</p>
-              <p class="fw-bold">${{ promo.precio }}</p>
+  <!-- ENVOLVER EL MAIN EN .main-content -->
+  <div class="main-content">
+    <main class="container my-4">
+      <h1 class="text-center mb-4">🍕 Promociones</h1>
+      <div class="row">
+        {% for promo in promociones %}
+          <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm" id="producto-{{ promo.id }}">
+              <img src="{{ promo.imagen.url }}" class="card-img-top" alt="{{ promo.titulo }}">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ promo.titulo }}</h5>
+                <p class="card-text">{{ promo.descripcion }}</p>
+                <p class="fw-bold">${{ promo.precio }}</p>
 
-              <!-- Controles cantidad -->
-              <div class="d-flex justify-content-center align-items-center mb-2">
-                <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ promo.id }}, -1)">-</button>
-                <span id="cantidad-{{ promo.id }}" class="mx-2">0</span>
-                <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ promo.id }}, 1)">+</button>
+                <!-- Controles cantidad -->
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                  <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ promo.id }}, -1)">-</button>
+                  <span id="cantidad-{{ promo.id }}" class="mx-2">0</span>
+                  <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ promo.id }}, 1)">+</button>
+                </div>
+
+                <!-- Botón Finalizar -->
+                <button class="btn btn-add-full" onclick="finalizarProducto({{ promo.id }}, 'promocion', '{{ promo.titulo }}', {{ promo.precio }})">
+                   Finalizar
+                </button>
               </div>
-
-              <!-- Botón Finalizar -->
-              <button class="btn btn-add-full" onclick="finalizarProducto({{ promo.id }}, 'promocion', '{{ promo.titulo }}', {{ promo.precio }})">
-                 Finalizar
-              </button>
             </div>
           </div>
-        </div>
-      {% empty %}
-        <p class="text-center">No hay promociones disponibles 🍕</p>
-      {% endfor %}
-    </div>
-  </main>
+        {% empty %}
+          <p class="text-center">No hay promociones disponibles 🍕</p>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
 
   {% include 'footer.html' %}
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/contador.js' %}"></script>
 

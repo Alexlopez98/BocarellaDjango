@@ -26,39 +26,43 @@
     </div>
   </nav>
 
-  <main class="container my-4">
-    <h1 class="text-center mb-4">🍰 Extras</h1>
-    <div class="row">
-      {% for extra in extras %}
-        <div class="col-md-4 mb-3">
-          <div class="card h-100 shadow-sm" id="producto-{{ extra.id }}">
-            <img src="{{ extra.imagen.url }}" class="card-img-top" alt="{{ extra.nombre }}">
-            <div class="card-body text-center">
-              <h5 class="card-title">{{ extra.nombre }}</h5>
-              <p class="card-text">{{ extra.descripcion }}</p>
-              <p class="fw-bold">${{ extra.precio }}</p>
+  <!-- ENVOLVER EL MAIN EN .main-content -->
+  <div class="main-content">
+    <main class="container my-4">
+      <h1 class="text-center mb-4">🍰 Extras</h1>
+      <div class="row">
+        {% for extra in extras %}
+          <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm" id="producto-{{ extra.id }}">
+              <img src="{{ extra.imagen.url }}" class="card-img-top" alt="{{ extra.nombre }}">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ extra.nombre }}</h5>
+                <p class="card-text">{{ extra.descripcion }}</p>
+                <p class="fw-bold">${{ extra.precio }}</p>
 
-              <!-- Controles de cantidad -->
-              <div class="d-flex justify-content-center align-items-center mb-2">
-                <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ extra.id }}, -1)">-</button>
-                <span id="cantidad-{{ extra.id }}" class="mx-2">0</span>
-                <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ extra.id }}, 1)">+</button>
+                <!-- Controles de cantidad -->
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                  <button class="btn btn-danger btn-sm" onclick="cambiarCantidad({{ extra.id }}, -1)">-</button>
+                  <span id="cantidad-{{ extra.id }}" class="mx-2">0</span>
+                  <button class="btn btn-success btn-sm" onclick="cambiarCantidad({{ extra.id }}, 1)">+</button>
+                </div>
+
+                <!-- Botón Finalizar -->
+                <button class="btn btn-add-full" onclick="finalizarProducto({{ extra.id }}, 'extra', '{{ extra.nombre }}', {{ extra.precio }})">
+                  ✅ Finalizar
+                </button>
               </div>
-
-              <!-- Botón Finalizar -->
-              <button class="btn btn-add-full" onclick="finalizarProducto({{ extra.id }}, 'extra', '{{ extra.nombre }}', {{ extra.precio }})">
-                ✅ Finalizar
-              </button>
             </div>
           </div>
-        </div>
-      {% empty %}
-        <p class="text-center">No hay extras disponibles 🍰</p>
-      {% endfor %}
-    </div>
-  </main>
+        {% empty %}
+          <p class="text-center">No hay extras disponibles 🍰</p>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
 
   {% include 'footer.html' %}
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/contador.js' %}"></script>
 
