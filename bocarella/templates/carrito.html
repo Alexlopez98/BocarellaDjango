@@ -56,24 +56,14 @@
               <button type="submit" class="btn btn-danger">Vaciar Carrito</button>
             </form>
 
-<<<<<<< Updated upstream
-         {% if request.user.is_authenticated %}
-            <a href="{% url 'checkout_pago' %}" class="btn btn-warning">Finalizar Compra</a>
-          {% else %}
-            <a href="{% url 'login' %}?next={% url 'checkout_pago' %}" class="btn btn-warning">
-              Finalizar Compra
-            </a>
-         {% endif %}
-=======
             {% if request.user.is_authenticated %}
-              <a href="{% url 'checkout' %}" class="btn btn-warning">Finalizar Compra</a>
+              <a href="{% url 'checkout_pago' %}" class="btn btn-warning">Finalizar Compra</a>
             {% else %}
               <a href="{% url 'login' %}?next={% url 'checkout' %}" class="btn btn-warning">
                 Finalizar Compra
               </a>
             {% endif %}
           </div>
->>>>>>> Stashed changes
         </div>
       {% else %}
       <p class="text-center" id="carrito-vacio">Tu carrito está vacío 🛒</p>
