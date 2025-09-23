@@ -25,6 +25,7 @@ urlpatterns = [
 
     # Checkout e historial
     path("checkout/", views.checkout, name="checkout"),
+    path('checkout/pago/', views.checkout_pago, name='checkout_pago'),
     path("historial/", views.historial, name="historial"),
 
     # Productos

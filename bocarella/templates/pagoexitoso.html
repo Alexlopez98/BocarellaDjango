@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LaBocarella - Pago Exitoso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/stylebocarella.css' %}">
+  <script>
+    // Redirige automáticamente al historial después de 3 segundos
+    setTimeout(() => {
+      window.location.href = "{% url 'historial' %}";
+    }, 3000);
+  </script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main class="container my-5 text-center">
+    <h1>✅ Pago Exitoso</h1>
+    <p>Gracias por tu compra. Orden #{{ orden.id }} registrada correctamente.</p>
+    <p>Serás redirigido a tu historial de compras...</p>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

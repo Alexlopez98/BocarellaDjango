@@ -269,6 +269,70 @@ def checkout(request):
     messages.success(request, "✅ Tu compra fue registrada correctamente")
     return redirect('historial')
 
+
+@login_required(login_url='login')
+@rol_requerido(['usuario'])
+def checkout_pago(request):
+    carrito = request.session.get('carrito', {})
+    if not carrito:
+        messages.warning(request, "⚠️ Tu carrito está vacío")
+        return redirect('carrito')
+
+    total = 0
+    for pid, cantidad in carrito.items():
+        try:
+            tipo, producto_id = pid.split("_")
+            producto_id = int(producto_id)
+        except ValueError:
+            continue
+
+        producto = None
+        if tipo == "pizza": producto = Pizza.objects.filter(id=producto_id).first()
+        elif tipo == "promocion": producto = Promocion.objects.filter(id=producto_id).first()
+        elif tipo == "acompanamiento": producto = Acompanamiento.objects.filter(id=producto_id).first()
+        elif tipo == "extra": producto = Extra.objects.filter(id=producto_id).first()
+
+        if producto:
+            total += producto.precio * cantidad
+
+    if request.method == 'POST':
+        # Simula pago exitoso y crea la orden
+        orden = Orden.objects.create(usuario=request.user, total=0)
+        total_orden = 0
+
+        for pid, cantidad in carrito.items():
+            try:
+                tipo, producto_id = pid.split("_")
+                producto_id = int(producto_id)
+            except ValueError:
+                continue
+
+            producto = None
+            if tipo == "pizza": producto = Pizza.objects.filter(id=producto_id).first()
+            elif tipo == "promocion": producto = Promocion.objects.filter(id=producto_id).first()
+            elif tipo == "acompanamiento": producto = Acompanamiento.objects.filter(id=producto_id).first()
+            elif tipo == "extra": producto = Extra.objects.filter(id=producto_id).first()
+
+            if producto:
+                subtotal = producto.precio * cantidad
+                total_orden += subtotal
+                OrdenItem.objects.create(
+                    orden=orden,
+                    nombre=producto.nombre,
+                    cantidad=cantidad,
+                    precio=producto.precio
+                )
+
+        orden.total = total_orden
+        orden.save()
+        request.session['carrito'] = {}  # vaciar carrito
+        messages.success(request, "✅ Tu compra fue registrada correctamente")
+        return render(request, 'pagoexitoso.html', {'orden': orden})
+
+    return render(request, 'checkout_pago.html', {'total': total})
+
+
+
 # ------------------------------
 # Historial de compras
 # ------------------------------
