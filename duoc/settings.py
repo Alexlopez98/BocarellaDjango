@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'duoc.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME':'127.0.0.1:1521/orcl',
+        'NAME':'127.0.0.1:1521/xe',
         'USER': 'c###bocarella',
         'PASSWORD': 'bocarella',
         'TEST':{
@@ -144,3 +144,6 @@ LOGIN_URL = 'login'  # nombre de la URL de login
 
 # URL a la que se redirige después de login exitoso
 LOGIN_REDIRECT_URL = 'index'
+
+#ESTE ES EL TOKEN SECRETO; LA KEY PARA ACCEDER AL LA API DE LOYVERSE
+LOYVERSE_TOKEN = "9d86e9a2073d44f384ec52dc381f3447"

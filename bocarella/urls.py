@@ -33,6 +33,10 @@ urlpatterns = [
     path("promociones/", views.promociones, name="promociones"),
     path("acompanamientos/", views.acompanamientos, name="acompanamientos"),
     path("extras/", views.extras, name="extras"),
+    
+    # API ITEMS
+    path("items/", views.loyverse_items, name="loyverse_items"),       # página HTML
+    path("api/items/", views.loyverse_items_api, name="loyverse_items_api"),
 ]
 
 handler403 = 'mi_app.views.error_403'

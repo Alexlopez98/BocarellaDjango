@@ -12,6 +12,8 @@ from .decorators import rol_requerido
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
 
+from .loyverse import LoyverseAPI # ESTO VIENE EN LA DOCUMENTACION DE LOYVERSE PUNTO DE VENTA DE DONDE SACAMOS LA API
+
 # ------------------------------
 # HOME
 # ------------------------------
@@ -494,3 +496,16 @@ def historial_empleado(request):
         "total_ganado": total_ganado,
         "periodo_actual": periodo
     })
+
+def loyverse_items(request):
+    return render(request, "loyverse.html")
+
+def loyverse_items_api(request):
+    api = LoyverseAPI()
+    try:
+        data = api.get_items()
+        items = data.get("items", [])
+    except Exception as e:
+        return JsonResponse({"error": f"No se pudo conectar con Loyverse: {e}"})
+    
+    return JsonResponse({"items": items})
