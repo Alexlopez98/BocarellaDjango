@@ -51,7 +51,12 @@ urlpatterns = [
     path("api/pedidos/", views.api_pedidos_usuario, name="api_pedidos_usuario"),
     path("api/pedidos/<int:id>/", views.api_pedido_detalle, name="api_pedido_detalle"),
     path("api/pedidos/todos/", views.api_pedidos_todos, name="api_pedidos_todos"),
+
+
+    #API UBICACION 
+    path('ubicacion/', views.ubicacion, name='ubicacion'),
 ]
+
 
 handler403 = 'mi_app.views.error_403'
 
@@ -59,3 +64,4 @@ urlpatterns += [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+

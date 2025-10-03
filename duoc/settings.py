@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'duoc.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME':'127.0.0.1:1521/orcl21',
+        'NAME':'127.0.0.1:1521/orcl21c',
         'USER': 'c###bocarella',
         'PASSWORD': 'bocarella',
         'TEST':{
@@ -161,3 +161,4 @@ REST_FRAMEWORK = {
     ],
 
 }
+

@@ -616,3 +616,14 @@ def api_pedidos_todos(request):
     serializer = OrdenSerializer(pedidos, many=True)
     return Response(serializer.data)
 
+# google maps tienda
+def ubicacion(request):
+    """
+    Renderiza la página con un mapa mostrando varias tiendas usando Leaflet + OpenStreetMap.
+    """
+    # Lista de tiendas con nombre y coordenadas
+    tiendas = [
+        {"nombre": "La Bocarella Valparaíso", "lat": -33.0472, "lng": -71.6127},
+        {"nombre": "La Bocarella Viña del Mar", "lat": -33.0240, "lng": -71.5515},
+    ]
+    return render(request, "ubicaciontienda.html", {"tiendas": tiendas})
