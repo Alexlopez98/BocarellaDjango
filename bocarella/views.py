@@ -12,6 +12,13 @@ from .decorators import rol_requerido
 from .models import Perfil, Pizza, Promocion, Acompanamiento, Extra, Orden, OrdenItem
 from .forms import RegistroForm, PerfilForm
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from .serializers import PizzaSerializer, OrdenSerializer
+
 from .loyverse import LoyverseAPI # ESTO VIENE EN LA DOCUMENTACION DE LOYVERSE PUNTO DE VENTA DE DONDE SACAMOS LA API
 
 # ------------------------------
@@ -509,3 +516,103 @@ def loyverse_items_api(request):
         return JsonResponse({"error": f"No se pudo conectar con Loyverse: {e}"})
     
     return JsonResponse({"items": items})
+
+
+# -------------------
+# API CRUD de Pizzas (Públicas)
+# -------------------
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.AllowAny])
+def api_pizzas(request):
+    if request.method == 'GET':
+        pizzas = Pizza.objects.all()
+        serializer = PizzaSerializer(pizzas, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = PizzaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([permissions.AllowAny])
+def api_pizza_detalle(request, id):
+    try:
+        pizza = Pizza.objects.get(id=id)
+    except Pizza.DoesNotExist:
+        return Response({"error": "Pizza no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = PizzaSerializer(pizza)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = PizzaSerializer(pizza, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        pizza.delete()
+        return Response({"message": "Pizza eliminada"}, status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------
+# API CRUD de Pedidos (Protegidas con Token)
+# -------------------
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def api_pedidos_usuario(request):
+    if request.method == 'GET':
+        pedidos = Orden.objects.filter(usuario=request.user).order_by('-fecha')
+        serializer = OrdenSerializer(pedidos, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        data = request.data.copy()
+        data['usuario'] = request.user.id
+        serializer = OrdenSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def api_pedido_detalle(request, id):
+    try:
+        pedido = Orden.objects.get(id=id, usuario=request.user)
+    except Orden.DoesNotExist:
+        return Response({"error": "Pedido no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = OrdenSerializer(pedido)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = OrdenSerializer(pedido, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        pedido.delete()
+        return Response({"message": "Pedido eliminado"}, status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------
+# API Pedidos (solo Admin)
+# -------------------
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def api_pedidos_todos(request):
+    pedidos = Orden.objects.all().order_by('-fecha')
+    serializer = OrdenSerializer(pedidos, many=True)
+    return Response(serializer.data)
+

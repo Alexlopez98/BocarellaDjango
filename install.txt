@@ -1,29 +1,30 @@
-Instructivo de Instalación – Proyecto Django
-============================================
+Instructivo de Instalación – Proyecto Django (Bocarella API)
+============================================================
 
 1. Requisitos previos
 ---------------------
 - Tener instalado Python 3.10 o superior (descargar desde: https://www.python.org/downloads/)
 - Tener instalado pip (incluido con Python)
 - Tener instalado git (para clonar el repositorio)
-- Tener Oracle Client si se usará 'oracledb' .
+- Tener Oracle Client si se usará `oracledb`
+- Postman para pruebas de la API: https://www.postman.com/downloads/
 
 2. Clonar el repositorio
 ------------------------
 git clone https://github.com/Alexlopez98/BocarellaDjango.git
 cd proyecto
 
-3. Instalar requerimientos desde la carpeta del proyecto.
+3. Instalar requerimientos
 --------------------------
 Ejecutar en la terminal (PowerShell, CMD o bash):
 
-    pip install -r requirements.txt
+pip install -r requirements.txt
 
-Esto instalará Django y todas las librerías necesarias (incluido oracledb).
+Esto instalará Django, `oracledb` y todas las librerías necesarias.
 
 4. Configuración de base de datos
 ---------------------------------
-En settings.py, configurar la conexión. Ejemplo para Oracle con nustros datos:
+En settings.py, configurar la conexión. Ejemplo para Oracle:
 
 DATABASES = {
     'default': {
@@ -41,18 +42,61 @@ DATABASES = {
 
 5. Aplicar migraciones
 ----------------------
-    python manage.py migrate
+python manage.py migrate
 
 6. Crear superusuario
 ---------------------
-    python manage.py createsuperuser
+python manage.py createsuperuser
 
 7. Levantar servidor
 --------------------
-    python manage.py runserver
+python manage.py runserver
 
 El proyecto quedará disponible en:
 http://127.0.0.1:8000/
 
-============================================
-Listo: Con estos pasos, cualquiera puede clonar y correr el proyecto de forma portable.
+8. Probar la API con Postman
+----------------------------
+8.1 Obtener token JWT
+- Método: POST
+- URL: http://127.0.0.1:8000/api/token/
+- Body → raw → JSON:
+
+{
+  "username": "tu_usuario",
+  "password": "tu_contraseña"
+}
+
+- Respuesta esperada:
+
+{
+  "refresh": "<refresh_token>",
+  "access": "<access_token>"
+}
+
+Copia el access_token para usarlo en otros endpoints.
+
+8.2 Usar token en otros endpoints
+- Método: GET o POST según endpoint
+- Headers:
+
+Key           | Value
+--------------|---------------------------
+Authorization | Bearer <access_token>
+
+- Ejemplo URL: http://127.0.0.1:8000/api/pizzas/
+- Respuesta: lista de pizzas disponibles.
+
+8.3 Endpoints principales
+-------------------------
+Endpoint                     | Método | Descripción                         | Requiere token
+-----------------------------|--------|-------------------------------------|----------------
+/api/token/                  | POST   | Obtener token JWT                   | No
+/api/pizzas/                 | GET    | Listar pizzas                       | Sí
+/api/pizzas/<id>/            | GET    | Detalle de pizza                    | Sí
+/api/pedidos/                | GET    | Pedidos del usuario                 | Sí
+/api/pedidos/<id>/           | GET    | Detalle de pedido                   | Sí
+/api/pedidos/todos/          | GET    | Todos los pedidos (solo admin)     | Sí
+/api/login/                  | POST   | Obtener token manualmente           | No
+
+Con estos pasos, cualquiera puede clonar, configurar y probar el proyecto de forma completa usando Django y Postman.

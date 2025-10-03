@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'bocarella'
 ]
 
@@ -147,3 +149,15 @@ LOGIN_REDIRECT_URL = 'index'
 
 #ESTE ES EL TOKEN SECRETO; LA KEY PARA ACCEDER AL LA API DE LOYVERSE
 LOYVERSE_TOKEN = "9d86e9a2073d44f384ec52dc381f3447"
+
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+
+}
