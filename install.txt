@@ -100,3 +100,84 @@ Endpoint                     | Método | Descripción                         | 
 /api/login/                  | POST   | Obtener token manualmente           | No
 
 Con estos pasos, cualquiera puede clonar, configurar y probar el proyecto de forma completa usando Django y Postman.
+
+
+
+# Instrucciones de Restauración de la Base de Datos – Bocarella API
+
+Estas instrucciones permiten recrear la base de datos del proyecto **Bocarella API** en Oracle a partir de los archivos entregados (`estructura.sql` y `datos_iniciales.sql`).
+
+1. Requisitos previos
+
+---
+
+* Tener instalado **Oracle Database** (local o remoto).
+* Tener acceso a un usuario con permisos para crear tablas.
+* Contar con los archivos:
+
+  * `estructura.sql` (definición de tablas, relaciones y restricciones)
+  * `datos_iniciales.sql` (inserciones de datos base)
+
+2. Conectarse a la base de datos
+
+---
+
+Puedes usar **SQL Developer** o **SQL*Plus**.
+
+### Ejemplo con SQL*Plus:
+
+```
+sqlplus c###bocarella/bocarella@127.0.0.1:1521/orcl
+```
+
+3. Crear las estructuras de la base de datos
+
+---
+
+Ejecutar el script de estructura:
+
+```
+@estructura.sql
+```
+
+Esto creará todas las tablas, claves foráneas, secuencias y restricciones necesarias.
+
+4. Insertar los datos iniciales
+
+---
+
+Ejecutar el script de datos:
+
+```
+@datos_iniciales.sql
+```
+
+Esto cargará la información básica (usuarios, roles, productos, etc.) para que el sistema esté listo para probar.
+
+5. Verificar la instalación
+
+---
+
+Ejecuta el siguiente comando para confirmar que las tablas se crearon correctamente:
+
+```sql
+SELECT table_name FROM user_tables;
+```
+
+Deberías visualizar al menos 6 tablas (por ejemplo: USUARIO, ROL, PIZZA, PEDIDO, DETALLE_PEDIDO, CLIENTE).
+
+6. Probar conexión desde Django
+
+---
+
+Una vez restaurada la base de datos, vuelve al entorno del proyecto Django y ejecuta:
+
+```
+python manage.py runserver
+```
+
+Si no se muestran errores de conexión, la configuración y restauración de la base de datos fue exitosa.
+
+---
+
+Con estos pasos, cualquier usuario puede restaurar completamente la base de datos de **Bocarella API**, inicializarla con datos válidos y ejecutar la aplicación sin depender de migraciones adicionales.
