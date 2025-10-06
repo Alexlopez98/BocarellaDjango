@@ -92,7 +92,7 @@ Authorization | Bearer <access_token>
 Endpoint                     | Método | Descripción                         | Requiere token
 -----------------------------|--------|-------------------------------------|----------------
 /api/token/                  | POST   | Obtener token JWT                   | No
-/api/pizzas/                 | GET    | Listar pizzas                       | Sí
+/api/pizzas/                 | GET    | Listar pizzas                       | No
 /api/pizzas/<id>/            | GET    | Detalle de pizza                    | Sí
 /api/pedidos/                | GET    | Pedidos del usuario                 | Sí
 /api/pedidos/<id>/           | GET    | Detalle de pedido                   | Sí
